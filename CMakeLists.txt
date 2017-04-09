@@ -9,6 +9,7 @@ set (GLOBAL_VERSION_PATCH 0)
 
 # Options
 option (USE_CUDA "Include CUDA code" ON) 
+option (USE_OPENCL "Include CUDA code" ON) 
 option (USE_GTEST "Run Google Test Framework Tests" ON)
 
 ## Dynamically configure library location
@@ -24,6 +25,21 @@ include_directories("$PROJECT_BINARY_DIR}")
 if (USE_CUDA)
 	include_directories ("${PROJECT_SOURCE_DIR}/CUDA")
 	add_subdirectory (CUDA)
+endif ()
+
+if (USE_OPENCL)
+	include_directories ("${PROJECT_SOURCE_DIR}/OpenCL")
+	add_subdirectory (OpenCL)
+	
+	# Try to find OpenCL and verify
+	include(FindOpenCL)
+	if (NOT OpenCL_FOUND)
+		message( FATAL_ERROR "OpenCL not found. Please install OpenCL or disable OpenCL in this project." )
+	endif ()
+	if (NOT OpenCL_VERSION_MAJOR EQUAL 2)
+		message( WARNING "OpenCL is not in version 2. This is not a tested scenario." )
+	endif()
+	
 endif ()
 
 # Add Executables
