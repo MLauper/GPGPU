@@ -200,6 +200,7 @@ void opencl_helpers::opencl_error::setError(cl_int errorCode)
 opencl_helpers::Platform::Platform(cl_platform_id platform_id): platform_id_(platform_id)
 {
 	this->gatherPlatformInfo();
+	this->gatherDevices();
 }
 
 cl_platform_id opencl_helpers::Platform::getId()
@@ -232,6 +233,11 @@ char* opencl_helpers::Platform::getClPlatformExtensions()
 	return clPlatformExtensions_;
 }
 
+std::vector<opencl_helpers::Device*> opencl_helpers::Platform::getDevices()
+{
+	return this->devices_;
+}
+
 void opencl_helpers::Platform::gatherPlatformInfo()
 {
 	this->clPlatformProfile_ = opencl_helpers::getPlatformProfile(this->platform_id_);
@@ -239,6 +245,20 @@ void opencl_helpers::Platform::gatherPlatformInfo()
 	this->clPlatformName_ = opencl_helpers::getPlatformName(this->platform_id_);
 	this->clPlatformVendor_ = opencl_helpers::getPlatformVendor(this->platform_id_);
 	this->clPlatformExtensions_ = opencl_helpers::getPlatformExtensions(this->platform_id_);
+}
+
+void opencl_helpers::Platform::gatherDevices()
+{
+	this->devices_ = opencl_helpers::getDevices(this->platform_id_);
+}
+
+opencl_helpers::Device::Device(cl_device_id device_id): device_id_(device_id)
+{
+}
+
+cl_device_id opencl_helpers::Device::getId()
+{
+	return this->device_id_;
 }
 
 /**
@@ -266,6 +286,33 @@ std::vector<opencl_helpers::Platform*> opencl_helpers::getPlatforms()
 	return platforms;
 }
 
+std::vector<opencl_helpers::Device*> opencl_helpers::getDevices(cl_platform_id platform_id, cl_device_type device_type)
+{
+	// Retrieve Number of Devices of Platform
+	cl_uint num_devices;
+	opencl_helpers::opencl_error* err;
+	err = opencl_helpers::runtime::device::clGetDeviceIDs(platform_id, device_type, 0, NULL, &num_devices);
+
+	// Retrieve Device IDs
+	std::vector<cl_device_id> devices_ids(num_devices);
+	err = opencl_helpers::runtime::device::clGetDeviceIDs(platform_id, device_type, num_devices, &devices_ids[0], NULL);
+
+	// Create Device objects
+	std::vector<opencl_helpers::Device*> devices;
+	for (auto it = devices_ids.begin(); it != devices_ids.end(); ++it)
+	{
+		devices.push_back(new opencl_helpers::Device(*it));
+	}
+
+	return devices;
+}
+
+std::vector<opencl_helpers::Device*> opencl_helpers::getDevices(cl_platform_id platform_id)
+{
+	// Retrieve Device Type CL_DEVICE_TYPE_ALL without explicityl specifying any device type
+	return opencl_helpers::getDevices(platform_id, CL_DEVICE_TYPE_ALL);
+}
+
 cl_uint opencl_helpers::getNumOfPlatforms()
 {
 	cl_uint num_platforms;
@@ -273,6 +320,23 @@ cl_uint opencl_helpers::getNumOfPlatforms()
 	err = opencl_helpers::runtime::platform::clGetPlatformIDs(0, NULL, &num_platforms);
 
 	return num_platforms;
+}
+
+cl_uint opencl_helpers::getNumOfDevices(cl_platform_id platform_id, cl_device_type device_type)
+{
+	cl_uint num_devices;
+	opencl_helpers::opencl_error* err;
+	err = opencl_helpers::runtime::device::clGetDeviceIDs(platform_id, device_type, 0, NULL, &num_devices);
+	
+	return num_devices;
+}
+
+cl_uint opencl_helpers::getNumOfDevices(cl_platform_id platform_id)
+{
+	cl_uint num_devices;
+	num_devices = opencl_helpers::getNumOfDevices(platform_id, CL_DEVICE_TYPE_ALL);
+
+	return num_devices;
 }
 
 char* opencl_helpers::getPlatformProfile(cl_platform_id platform_id)
@@ -365,6 +429,13 @@ opencl_helpers::opencl_error* opencl_helpers::runtime::platform::clGetPlatformID
 opencl_helpers::opencl_error* opencl_helpers::runtime::platform::clGetPlatformInfo(cl_platform_id platform, cl_platform_info param_name, size_t param_value_size, void* param_value, size_t* param_value_size_ret)
 {
 	auto err = ::clGetPlatformInfo(platform, param_name, param_value_size, param_value, param_value_size_ret);
+
+	return new opencl_helpers::opencl_error(err);
+}
+
+opencl_helpers::opencl_error* opencl_helpers::runtime::device::clGetDeviceIDs(cl_platform_id platform, cl_device_type device_type, cl_uint num_entries, cl_device_id* devices, cl_uint* num_devices)
+{
+	auto err = ::clGetDeviceIDs(platform, device_type, num_entries, devices, num_devices);
 
 	return new opencl_helpers::opencl_error(err);
 }

@@ -13,9 +13,16 @@ namespace opencl_demo
 		void printPlatforms();
 		void printNumberOfAvailablePlatforms();
 		void printPlatformInfo();
+		void printDevices();
 	private:
 		cl_uint numOfPlatforms_;
 		std::vector<opencl_helpers::Platform*> platforms_;
+	};
+
+	class DeviceDemo
+	{
+	public:
+		
 	};
 
 }

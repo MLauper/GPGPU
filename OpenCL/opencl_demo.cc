@@ -10,6 +10,8 @@ int main(int argc, char **argv) {
 	platform->printNumberOfAvailablePlatforms();
 	platform->printPlatforms();
 	platform->printPlatformInfo();
+
+	platform->printDevices();
 	
 	// Free resources
 	delete platform;
@@ -48,6 +50,21 @@ void opencl_demo::PlatformDemo::printPlatformInfo()
 		std::cout << "\t" << "Platform Vendor: " << (*it)->getClPlatformVendor() << "\n";
 		std::cout << "\t" << "Platform Extensions: " << (*it)->getClPlatformExtensions() << "\n";
 
+		std::cout << "\n";
+	}
+	std::cout << "\n";
+}
+
+void opencl_demo::PlatformDemo::printDevices()
+{
+	for (auto it = this->platforms_.begin(); it != this->platforms_.end(); ++it)
+	{
+		std::cout << "Devices for Platform: " << (*it)->getId() << ", " << (*it)->getClPlatformName() << "\n";
+		auto devices = (*it)->getDevices();
+		for (auto deviceIt = devices.begin(); deviceIt != devices.end(); ++deviceIt)
+		{
+			std::cout << "\t" << "Device: " << (*deviceIt)->getId() << "\n";
+		}
 		std::cout << "\n";
 	}
 	std::cout << "\n";

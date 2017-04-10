@@ -37,6 +37,25 @@ TEST(OpenCl_Platform_clGetPlatformIDs, platforms)
 	return;
 }
 
+TEST(OpenCl_Device_clGetDeviceIDs, devices)
+{
+	// Retrieve Platforms
+	auto platforms = opencl_helpers::getPlatforms();
+	EXPECT_GT(platforms.size(), 0);
+	auto platform = platforms[0];
+
+	// Retrieve Number of Devices of Platform
+	cl_uint num_devices;
+	opencl_helpers::opencl_error* err;
+	err = opencl_helpers::runtime::device::clGetDeviceIDs(platform->getId(), CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
+	EXPECT_GT(num_devices, 0);
+
+	// Retrieve Device IDs
+	std::vector<cl_device_id> devices(num_devices);
+	err = opencl_helpers::runtime::device::clGetDeviceIDs(platform->getId(), CL_DEVICE_TYPE_ACCELERATOR, num_devices, &devices[0], NULL);
+	EXPECT_EQ(devices.size(), static_cast<size_t>(num_devices));
+}
+
 TEST(OpenCl_Platform_clGetPlatformInfo, queryName)
 {
 	// Get Testing Platform
@@ -140,12 +159,34 @@ TEST(OpenCl_Platform_clGetPlatformInfo, queryPlatformExtensions)
 TEST(OpenCl_Helpers_GetNumOfPlatforms, basic)
 {
 	// Retrieve number of platforms via helper function
-	cl_uint numOfPlatforms = opencl_helpers::getNumOfPlatforms();
+	auto numOfPlatforms = opencl_helpers::getNumOfPlatforms();
 
 	// Expect at least one available OpenCL Platform in the system
 	EXPECT_GT(numOfPlatforms, 0);
 
 	return;
+}
+
+TEST(OpenCl_Helpers_GetNumOfDevices, withDeviceType)
+{
+	// Retrieve platforms
+	auto platforms = opencl_helpers::getPlatforms();
+	auto platform = platforms[0];
+
+	// Retrieve Devices
+	auto numOfDevices = opencl_helpers::getNumOfDevices(platform->getId(), CL_DEVICE_TYPE_ALL);
+	EXPECT_GT(numOfDevices, 0);
+}
+
+TEST(OpenCl_Helpers_GetNumOfDevices, withoutDeviceType)
+{
+	// Retrieve platforms
+	auto platforms = opencl_helpers::getPlatforms();
+	auto platform = platforms[0];
+
+	// Retrieve Devices
+	auto numOfDevices = opencl_helpers::getNumOfDevices(platform->getId());
+	EXPECT_GT(numOfDevices, 0);
 }
 
 TEST(OpenCl_Helpers_GetPlatforms, basic)
@@ -156,6 +197,30 @@ TEST(OpenCl_Helpers_GetPlatforms, basic)
 
 	// /Expect to match the number of platforms and returned platform objects
 	EXPECT_EQ(numOfPlatforms, platforms.size());
+}
+
+TEST(OpenCl_Helpers_GetDeivces, withDeviceType)
+{
+	// Retrieve platform for testing
+	auto platforms = opencl_helpers::getPlatforms();
+	auto platform = platforms[0];
+
+	// Retrieve Devices
+	auto devices = opencl_helpers::getDevices(platform->getId(), CL_DEVICE_TYPE_ALL);
+
+	EXPECT_GT(devices.size(), static_cast<size_t>(0));
+}
+
+TEST(OpenCl_Helpers_GetDeivces, withoutDeviceType)
+{
+	// Retrieve platform for testing
+	auto platforms = opencl_helpers::getPlatforms();
+	auto platform = platforms[0];
+
+	// Retrieve Devices
+	auto devices = opencl_helpers::getDevices(platform->getId());
+
+	EXPECT_GT(devices.size(), static_cast<size_t>(0));
 }
 
 TEST(OpenCl_Helpers_GetPlatformProfile, basic)
