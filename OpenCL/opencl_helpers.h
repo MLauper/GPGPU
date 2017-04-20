@@ -83,6 +83,7 @@ namespace opencl_helpers
 		namespace device
 		{
 			opencl_error* clGetDeviceIDs(cl_platform_id platform, cl_device_type device_type, cl_uint num_entries, cl_device_id* devices, cl_uint* num_devices);
+			opencl_error* clGetDeviceInfo(cl_device_id device, cl_device_info  param_name, size_t param_value_size, void* param_value, size_t* param_value_size_ret);
 		}
 	}
 

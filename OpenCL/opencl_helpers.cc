@@ -439,3 +439,10 @@ opencl_helpers::opencl_error* opencl_helpers::runtime::device::clGetDeviceIDs(cl
 
 	return new opencl_helpers::opencl_error(err);
 }
+
+opencl_helpers::opencl_error* opencl_helpers::runtime::device::clGetDeviceInfo(cl_device_id device, cl_device_info param_name, size_t param_value_size, void* param_value, size_t* param_value_size_ret)
+{
+	auto err = ::clGetDeviceInfo(device, param_name, param_value_size, param_value, param_value_size_ret);
+
+	return new opencl_helpers::opencl_error(err);
+}
