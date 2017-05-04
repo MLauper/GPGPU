@@ -12,43 +12,9 @@ option (USE_CUDA "Include CUDA code" ON)
 option (USE_OPENCL "Include CUDA code" ON) 
 option (USE_GTEST "Run Google Test Framework Tests" ON)
 
-# Include child directories
-#if (USE_CUDA)
-#	include_directories ("${PROJECT_SOURCE_DIR}/CUDA")
-#	include_directories ("${PROJECT_SOURCE_DIR}/CUDA/cuda_helpers")
-#	
-#	# Cuda helpers
-#	add_subdirectory (CUDA/cuda_helpers)
-#	add_library(
-#		cuda_helpers 
-#		cuda_helpers.cc
-#		cuda_helpers.h
-#	)
-#	
-#	if (USE_GTEST)
-#		add_executable(
-#			cuda_helpers_unittest
-#			cuda_helpers_unittest.cc
-#		)
-#		
-#		add_dependencies(
-#			cuda_helpers_unittest
-#			cuda_helpers
-#			gtest
-#		)
-#		
-#		target_link_libraries(
-#			cuda_helpers_unittest
-#			cuda_helpers
-#			gtest_main
-#		)
-#		
-#		add_test(NAME cuda_helpers COMMAND cuda_helpers_unittest)
-#	endif()
-#
-#	target_include_directories (cuda_helpers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-#
-#endif ()
+if (USE_CUDA)
+	add_subdirectory(CUDA)
+endif ()
 
 if (USE_OPENCL)
 	add_subdirectory(OpenCL)
