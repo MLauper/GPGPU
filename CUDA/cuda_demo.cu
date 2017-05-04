@@ -68,7 +68,7 @@ void cuda_demo::device_memory::linear_memory::demonstrateSharedDeviceMemory()
 	cudaMemcpy(d_a, &h_a, sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(d_b, &h_b, sizeof(int), cudaMemcpyHostToDevice);
 
-	// Calculate result on the device
+	// Calculate result on the device using shared memory
 	addIntSharedMemory << <1, 1 >> >(d_a, d_b, d_c);
 
 	// Move output value to the host
