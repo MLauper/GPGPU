@@ -13,6 +13,7 @@ namespace cuda_demo
 		namespace linear_memory
 		{
 			void demonstrateLinearDeviceMemory();
+			void demonstrateSharedDeviceMemory();
 		}
 	}
 
