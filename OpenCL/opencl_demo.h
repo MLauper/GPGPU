@@ -4,6 +4,21 @@
 #include <string>
 #include "opencl_helpers.h"
 
+/*! \file opencl_demo.h
+*	\brief Provides functions to to interactively demonstrate OpenCL.
+*
+*	This header file provides all function for the namespace opencl_demo.
+*	Under opencl_demo, there are several other namespaces that provide
+*	appropriate demos for different OpenCL functionality, such as retrieval
+*	of platforms and devices.
+*/
+
+/*! \brief Contains interactive demonstrations for OpenCL
+ *
+ * This namepsace contains all demonstrations for OpenCL demonstratoins.
+ * The subsidiary namespaces are organized based on the purpose of the 
+ * demonstration
+ */
 namespace opencl_demo
 {
 	class PlatformDemo

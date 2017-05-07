@@ -2,10 +2,6 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-int answerToEverything(){
-	return 42;
-}
-
 __global__ void dummyKernel()
 {
 	return;

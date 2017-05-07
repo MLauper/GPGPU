@@ -2,6 +2,15 @@
 #include "gtest/gtest.h"
 #include "opencl_demo.h"
 
+/*! \file opencl_helpers_unittest.cc
+*	\brief Test the proper functionality of OpenCL and OpenCL Helpers.
+*
+*	This file contains tests based on the Google Test framework to
+*	test if OpenCL works as expected and if the OpenCL Helper functions
+*	properly work.
+*/
+
+/*! \brief Test if OpenCL Platform numbers can be retrieved. */
 TEST(OpenCl_Platform_clGetPlatformIDs, num_platforms)
 {
 	cl_uint num_platforms;

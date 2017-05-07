@@ -4,8 +4,28 @@
 #include <string>
 #include <vector>
 
+/*! \file opencl_helpers.h
+ *	\brief Contains helper functions for OpenCL.
+ *	
+ *	This file contains helper functions to reduce the complexity
+ *	of the OpenCL API and make the demonstrations cleaner and 
+ *	reduce noise. 
+ */
+
+/*! \brief Holds all OpenCL Helper functions
+ *
+ * This namespace contains all OpenCL Helper functions. They are
+ * ordered based on their usecase. The basic functions can be called
+ * directly. You will receive an appropriate object in return on which
+ * you will be able to invoke advanced OpenCL functions.
+ */
 namespace opencl_helpers
 {
+	/*! \brief Holds an OpenCL Error
+	 *
+	 * This struct holds an OpenCL Error Code and a human readable
+	 * Error message.
+	 */
 	struct opencl_error;
 	enum class opencl_device_type;
 	class Platform;

@@ -3,17 +3,25 @@
 
 #define EXPECT_CUDA_SUCCES (val) (EXPECT_EQ(cudaSuccess, val))
 
-TEST(answerToEverythingTest, Right)
-{
-	EXPECT_EQ(42, cuda_helpers::answerToEverything());
-}
+/*! \file cuda_helpers_unittest.cu
+ *	\brief Test the proper functionality of CUDA and CUDA Helpers.
+ *	
+ *	This file contains tests based on the Google Test framework to 
+ *	test if CUDA works as expected and if the CUDA Helper functions
+ *	properly work.
+ */
 
+/*! \brief Test if a CUDA kernel can be scheduled
+ *
+ *	fefwefew
+ */
 TEST(executeKernel, dummy)
 {
 	dummyKernel <<< 1, 1 >>>();
 	EXPECT_EQ(cudaSuccess, cudaGetLastError());
 }
 
+/*! \brief Test if a single value can be copied to and from the GPU*/
 TEST(LinearMemory, singleValueCopy)
 {
 	auto h_a = 1;
@@ -40,6 +48,7 @@ TEST(LinearMemory, singleValueCopy)
 	EXPECT_EQ(cudaSuccess, cudaFree(d_c));
 }
 
+/*! \brief Test if shared memory can be used.*/
 TEST(LinearMemory, sharedMemory)
 {
 	auto h_a = 1;
@@ -66,6 +75,7 @@ TEST(LinearMemory, sharedMemory)
 	EXPECT_EQ(cudaSuccess, cudaFree(d_c));
 }
 
+/*! \brief All tests are run when the Test Executable is run.*/
 int main(int argc, char** argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
