@@ -1,6 +1,8 @@
 #ifndef GPGPU_OPENCL_OPENCL_HELPERS_
 #define GPGPU_OPENCL_OPENCL_HELPERS_
 #include <CL/cl.h>
+#include <CL/cl.hpp>
+
 #include <string>
 #include <vector>
 

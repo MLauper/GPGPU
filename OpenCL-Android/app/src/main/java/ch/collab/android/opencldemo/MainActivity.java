@@ -3,7 +3,6 @@ package ch.collab.android.opencldemo;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
-import android.view.ViewGroup;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -75,7 +74,21 @@ public class MainActivity extends AppCompatActivity {
 
             int i = 0;
             for(Device device : platform.getDevices()){
-                addEntry(tableLayout, "Platform Device "+i, device.getDeviceID());
+                addEntry(tableLayout, "Platform Device "+i+":", device.getID());
+                addEntry(tableLayout, "Device Available:", device.getAvailable());
+                addEntry(tableLayout, "Device Name:", device.getName());
+                addEntry(tableLayout, "Device Platform:", device.getPlatform());
+                addEntry(tableLayout, "Device Profile:", device.getProfile());
+                addEntry(tableLayout, "Device Version:", device.getVersion());
+                addEntry(tableLayout, "Device Type:", device.getType());
+                addEntry(tableLayout, "Device Vendor ID:", device.getVendorID());
+                addEntry(tableLayout, "Device Driver Version:", device.getDriverVersion());
+                addEntry(tableLayout, "Device Global Mem Cache Size:", device.getGlobalMemCacheSize());
+                addEntry(tableLayout, "Device Global Mem Cache Type:", device.getGlobalMemCacheType());
+                addEntry(tableLayout, "Device Global Mem Size:", device.getGlobalMemSize());
+                addEntry(tableLayout, "Device Local Mem Size:", device.getLocalMemSize());
+                addEntry(tableLayout, "Device Local Mem Type:", device.getLocalMemType());
+                addEntry(tableLayout, "Device Extensions:", device.getDeviceExtensions());
             }
         }
 

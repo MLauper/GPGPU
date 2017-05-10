@@ -11,6 +11,7 @@ int main(int argc, char **argv) {
 	platform->printPlatformInfo();
 
 	platform->printDevices();
+	platform->printDeviceInfo();
 	
 	// Free resources
 	delete platform;
@@ -67,4 +68,38 @@ void opencl_demo::PlatformDemo::printDevices()
 		std::cout << "\n";
 	}
 	std::cout << "\n";
+}
+
+void opencl_demo::PlatformDemo::printDeviceInfo()
+{
+	std::vector<cl::Platform> platforms;
+	cl::Platform::get(&platforms);
+
+	for (auto &platform : platforms)
+	{
+		std::vector<cl::Device> devices;
+		platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
+
+		for (auto &device : devices)
+		{
+			std::cout << "Info for Device: " << device.getInfo<CL_DEVICE_VENDOR_ID>() << "\n";
+
+			std::cout << "\tDevice Available: " << device.getInfo<CL_DEVICE_AVAILABLE>() << "\n";
+			std::cout << "\tDevice Name: " << device.getInfo<CL_DEVICE_NAME>() << "\n";
+			std::cout << "\tDevice Platform: " << device.getInfo<CL_DEVICE_PLATFORM>() << "\n";
+			std::cout << "\tDevice Profile: " << device.getInfo<CL_DEVICE_PROFILE>() << "\n";
+			std::cout << "\tDevice Version: " << device.getInfo<CL_DEVICE_VERSION>() << "\n";
+			std::cout << "\tDevice Type: " << device.getInfo<CL_DEVICE_TYPE>() << "\n";
+			std::cout << "\tDevice Vendor ID: " << device.getInfo<CL_DEVICE_VENDOR_ID>() << "\n";
+			std::cout << "\tDevice Driver Version: " << device.getInfo<CL_DRIVER_VERSION>() << "\n";
+			std::cout << "\tDevice Global Mem Cache Size: " << device.getInfo<CL_DEVICE_GLOBAL_MEM_CACHE_SIZE>() << "\n";
+			std::cout << "\tDevice Global Mem Cache Type: " << device.getInfo<CL_DEVICE_GLOBAL_MEM_CACHE_TYPE>() << "\n";
+			std::cout << "\tDevice Global Mem Size: " << device.getInfo<CL_DEVICE_GLOBAL_MEM_SIZE>() << "\n";
+			std::cout << "\tDevice Local Mem Size: " << device.getInfo<CL_DEVICE_LOCAL_MEM_SIZE>() << "\n";
+			std::cout << "\tDevice Local Mem Type: " << device.getInfo<CL_DEVICE_LOCAL_MEM_TYPE>() << "\n";
+			std::cout << "\tDevice Extentions: " << device.getInfo<CL_DEVICE_EXTENSIONS>() << "\n";
+
+			std::cout << "\n";
+		}
+	}
 }
