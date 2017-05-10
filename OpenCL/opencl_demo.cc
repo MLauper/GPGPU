@@ -2,7 +2,6 @@
 #include "opencl_helpers.h"
 #include <iostream>
 
-
 int main(int argc, char **argv) {
 	
 	opencl_demo::PlatformDemo* platform = new opencl_demo::PlatformDemo();

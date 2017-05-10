@@ -27,6 +27,7 @@ namespace opencl_helpers
 	 * Error message.
 	 */
 	struct opencl_error;
+
 	enum class opencl_device_type;
 	class Platform;
 	class Device;
