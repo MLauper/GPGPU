@@ -1,6 +1,4 @@
 #include "opencl_helpers.h"
-#include "CL/cl.h"
-#include "opencl_demo.h"
 
 void opencl_helpers::opencl_error::setError(cl_int errorCode)
 {

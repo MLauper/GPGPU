@@ -28,7 +28,7 @@ namespace opencl_helpers
 	 */
 	struct opencl_error;
 
-	enum class opencl_device_type;
+	enum class opencl_device_type : uint64_t ;
 	class Platform;
 	class Device;
 
@@ -66,7 +66,7 @@ namespace opencl_helpers
 		cl_device_id device_id_;
 	};
 
-	enum class opencl_device_type
+	enum class opencl_device_type : uint64_t
 	{
 		CPU = CL_DEVICE_TYPE_CPU,
 		GPU = CL_DEVICE_TYPE_GPU,

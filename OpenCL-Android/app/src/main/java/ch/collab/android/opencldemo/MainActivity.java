@@ -1,6 +1,11 @@
 package ch.collab.android.opencldemo;
 
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.ViewGroup;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -28,14 +33,64 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "Reloading OpenCL Demo...", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+                openCLDemo();
             }
         });
 
-        // Example of a call to a native method
-        TextView tv = (TextView) findViewById(R.id.sample_text);
-        tv.setText(stringFromJNI());
+        //// Example of a call to a native method
+        //TextView tv = (TextView) findViewById(R.id.sample_text);
+        //tv.setText(stringFromJNI());
+
+        openCLDemo();
+    }
+
+    /**
+     * This function will invoke JNI functions and print the output on the screen.
+     */
+    private void openCLDemo() {
+
+        // Get table for output
+        TableLayout tableLayout = (TableLayout) findViewById(R.id.table_main);
+
+        addEntry(tableLayout, "Num of Platforms", getNumOfPlatforms());
+
+
+    }
+
+    private void addEntry(TableLayout tableLayout, String property, String value){
+
+        // Create new Row to be added
+        TableRow tableRow = new TableRow(this);
+        tableRow.setWeightSum(2);
+        //tableRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
+
+        // Add Property column
+        TextView propertyTextView = new TextView(this);
+        propertyTextView.setText(property);
+        propertyTextView.setTextColor(Color.WHITE);
+        propertyTextView.setGravity(Gravity.LEFT);
+        propertyTextView.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT, 1.0f));
+        propertyTextView.setPadding(convertDPtoPixel(5),0,0,0);
+        tableRow.addView(propertyTextView);
+
+        // Add Value column
+        TextView valueTextView = new TextView(this);
+        valueTextView.setText(value);
+        valueTextView.setTextColor(Color.WHITE);
+        valueTextView.setGravity(Gravity.LEFT);
+        valueTextView.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT, 1.0f));
+        valueTextView.setPadding(convertDPtoPixel(5),0,0,0);
+        tableRow.addView(valueTextView);
+
+        // Add row to table
+        tableLayout.addView(tableRow);
+    }
+
+    private int convertDPtoPixel(int dp) {
+        final float scale = getResources().getDisplayMetrics().density;
+        return (int) (dp * scale + 0.5f);
     }
 
     @Override
@@ -65,4 +120,5 @@ public class MainActivity extends AppCompatActivity {
      * which is packaged with this application.
      */
     public native String stringFromJNI();
+    public native String getNumOfPlatforms();
 }
