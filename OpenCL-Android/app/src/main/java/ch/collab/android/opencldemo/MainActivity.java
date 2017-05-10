@@ -94,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Add spacing
         addEntry(tableLayout, "", "");
+
+        addEntry(tableLayout, "Calculating 1 + 2: ", executeSampleKernel());
     }
 
     private void addEntry(TableLayout tableLayout, String property, String value){
@@ -155,5 +157,6 @@ public class MainActivity extends AppCompatActivity {
     public native String getNumOfPlatforms();
     public native String[] getPlatformNames();
     public native Platform[] getPlatforms();
+    public native String executeSampleKernel();
 }
 
