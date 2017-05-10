@@ -54,9 +54,28 @@ public class MainActivity extends AppCompatActivity {
         // Get table for output
         TableLayout tableLayout = (TableLayout) findViewById(R.id.table_main);
 
+        // Print number of platforms
         addEntry(tableLayout, "Num of Platforms", getNumOfPlatforms());
 
+        //// Print platform names
+        //String[] platformNames = getPlatformNames();
+        //for (String platformName : platformNames){
+        //    addEntry(tableLayout, "Platform Name:", platformName);
+        //}
 
+        Platform[] platforms = getPlatforms();
+        for(Platform platform : platforms){
+            addEntry(tableLayout, "", "");
+
+            addEntry(tableLayout, "Platform Vendor:", platform.getPlatformVendor());
+            addEntry(tableLayout, "Platform Name:", platform.getPlatformName());
+            addEntry(tableLayout, "Platform Profile:", platform.getPlatformProfile());
+            addEntry(tableLayout, "Platform Version:", platform.getPlatformVersion());
+            addEntry(tableLayout, "Platform Extensions:", platform.getPlatformExtensions());
+        }
+
+        // Add spacing
+        addEntry(tableLayout, "", "");
     }
 
     private void addEntry(TableLayout tableLayout, String property, String value){
@@ -64,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
         // Create new Row to be added
         TableRow tableRow = new TableRow(this);
         tableRow.setWeightSum(2);
-        //tableRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
 
         // Add Property column
         TextView propertyTextView = new TextView(this);
@@ -115,10 +133,9 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-    public native String stringFromJNI();
+
     public native String getNumOfPlatforms();
+    public native String[] getPlatformNames();
+    public native Platform[] getPlatforms();
 }
+
