@@ -29,3 +29,7 @@ adb ls /system/vendor/lib64/
 
 adb pull /system/vendor/lib64/libOpenCL.so
 ```
+
+Screenshot
+----------
+![App Screenshot](./doc/Screenshot.png "Application Screenshot")
