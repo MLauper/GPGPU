@@ -35,11 +35,10 @@ namespace opencl_demo
 		std::vector<opencl_helpers::Platform*> platforms_;
 	};
 
-	class DeviceDemo
+	namespace memory
 	{
-	public:
-		
-	};
+		void demonstrateMemBuffer();
+	}
 
 }
 
