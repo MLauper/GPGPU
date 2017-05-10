@@ -72,6 +72,11 @@ public class MainActivity extends AppCompatActivity {
             addEntry(tableLayout, "Platform Profile:", platform.getPlatformProfile());
             addEntry(tableLayout, "Platform Version:", platform.getPlatformVersion());
             addEntry(tableLayout, "Platform Extensions:", platform.getPlatformExtensions());
+
+            int i = 0;
+            for(Device device : platform.getDevices()){
+                addEntry(tableLayout, "Platform Device "+i, device.getDeviceID());
+            }
         }
 
         // Add spacing

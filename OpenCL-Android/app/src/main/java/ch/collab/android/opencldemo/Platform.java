@@ -7,6 +7,7 @@ public class Platform {
     private String platformVendor;
     private String platformExtensions;
 
+    private Device[] devices;
 
     public Platform(){
 
@@ -31,13 +32,9 @@ public class Platform {
     public String getPlatformExtensions() {
         return platformExtensions;
     }
-    /*
-    cl_platform_id getId();
-    char* getClPlatformProfile();
-    char* getClPlatformVersion();
-    char* getClPlatformName();
-    char* getClPlatformVendor();
-    char* getClPlatformExtensions();
-    std::vector<opencl_helpers::Device*> getDevices();
-    */
+
+    public Device[] getDevices() {
+        return devices;
+    }
 }
+
