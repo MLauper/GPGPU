@@ -9,7 +9,8 @@ set (GLOBAL_VERSION_PATCH 0)
 
 # Options
 option (USE_CUDA "Include CUDA code" ON) 
-option (USE_OPENCL "Include CUDA code" ON) 
+option (USE_OPENCL "Include OpenCL code" ON) 
+option (USE_OPENGL "Include OpenGL code" ON)
 option (USE_GTEST "Run Google Test Framework Tests" ON)
 
 if (USE_CUDA)
@@ -20,6 +21,9 @@ if (USE_OPENCL)
 	add_subdirectory(OpenCL)
 endif ()
 
+if (USE_OPENGL)
+	add_subdirectory(OpenGL)
+endif ()
 
 if (USE_GTEST)
 	configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
@@ -58,6 +62,24 @@ if (USE_GTEST)
 	#add_test(NAME example_test COMMAND example)
 endif()
 
+if (USE_OPENGL)
+	configure_file(CMakeLists.txt.GLEW.in glew-download/CMakeLists.txt)
+	execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+	  RESULT_VARIABLE result
+	  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/glew-download )
+	if(result)
+	  message(FATAL_ERROR "CMake step for glew failed: ${result}")
+	endif()
+	execute_process(COMMAND ${CMAKE_COMMAND} --build .
+	  RESULT_VARIABLE result
+	  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/glew-download )
+	if(result)
+	  message(FATAL_ERROR "Build step for glew failed: ${result}")
+	endif()
+
+	add_subdirectory(${CMAKE_BINARY_DIR}/glew-src/build/cmake
+					 ${CMAKE_BINARY_DIR}/glew-build)
+endif()
 ## Print all CMake Properties
 #get_cmake_property(_variableNames VARIABLES)
 #foreach (_variableName ${_variableNames})

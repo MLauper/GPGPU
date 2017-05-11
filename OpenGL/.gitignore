@@ -1,0 +1,13 @@
+*.vcxproj.user
+*.vcxproj
+*.vcxproj.filters
+CMakeCache.txt
+**/CMakeFiles/*
+**/cmake_install.cmake
+*.sln
+**/bin/
+*.VC.db
+*.VC.opendb
+x64/
+**/*.dir/
+.vs

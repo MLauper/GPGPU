@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 2.8.12)
+
+project(glew-download NONE)
+
+include(ExternalProject)
+ExternalProject_Add(glew
+  GIT_REPOSITORY    https://github.com/nigels-com/glew.git
+  GIT_TAG           glew-2.0.0
+  SOURCE_DIR        "${CMAKE_BINARY_DIR}/glew-src"
+  BINARY_DIR        "${CMAKE_BINARY_DIR}/glew-build"
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND     ""
+  INSTALL_COMMAND   ""
+  TEST_COMMAND      ""
+)
