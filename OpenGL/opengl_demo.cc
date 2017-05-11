@@ -10,7 +10,8 @@ int main(int argc, char *argv[])
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 {
 	// Print Version
-	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << "\n";
+	//std::cout << "OpenGL Version: " << ::glGetString(GL_VERSION) << "\n";
 
+	std::cout << glGetString(GL_VERSION);
 	return 0;
 }
