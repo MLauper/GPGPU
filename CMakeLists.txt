@@ -10,7 +10,7 @@ set (GLOBAL_VERSION_PATCH 0)
 # Options
 option (USE_CUDA "Include CUDA code" ON) 
 option (USE_OPENCL "Include OpenCL code" ON) 
-option (USE_OPENGL "Include OpenGL code" ON)
+option (USE_OPENGL "Include OpenGL code" OFF)
 option (USE_GTEST "Run Google Test Framework Tests" ON)
 
 if (USE_CUDA)
