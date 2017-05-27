@@ -37,7 +37,7 @@ static void BM_memcpy(benchmark::State& state)
 
 //BENCHMARK(BM_memcpy)->Arg(8)->Arg(64)->Arg(512)->Arg(1 << 10)->Arg(8 << 10);
 
-static void BM_OpenCLInitialization(benchmark::State& state)
+static void BM_OpenCLBasicTest(benchmark::State& state)
 {
 	while (state.KeepRunning())
 	{
@@ -88,7 +88,73 @@ static void BM_OpenCLInitialization(benchmark::State& state)
 		queue.enqueueReadBuffer(buffer_C, CL_TRUE, 0, sizeof(int) * 10, C);
 	}
 }
-BENCHMARK(BM_OpenCLInitialization)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_OpenCLBasicTest)
+	->Unit(benchmark::kMillisecond)
+	->MinTime(1.0);
+
+static void BM_OpenCLConvergedExecution(benchmark::State& state)
+{
+	// Create Context on Device
+	cl::Context context({ benchmarkingDevice });
+
+	// Create Program source Object
+	cl::Program::Sources sources;
+
+	// Provide Kernel Code
+	std::string kernelCode =
+		R"CLC(
+			void kernel multFloat(global const float* in, global float* out){
+				out[get_global_id(0)]=in[get_global_id(0)]*1.010101f;
+			}
+		)CLC";
+	sources.push_back({ kernelCode.c_str() , kernelCode.length() });
+
+	// Create Program with Source in the created Context and Build the Program
+	cl::Program program(context, sources);
+	program.build({ benchmarkingDevice });
+
+	// Create Buffer Objects
+	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(int) * 1000);
+	cl::Buffer buffer_out(context, CL_MEM_READ_WRITE, sizeof(int) * 1000);
+
+	// Input Data
+	float input[1000] = { 1.458451f };
+	
+	// Create Command Queue
+	cl::CommandQueue queue(context, benchmarkingDevice);
+
+	// Copy Data from Host to Device
+	queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(float) * 1000, input);
+
+	cl::make_kernel<cl::Buffer&, cl::Buffer&> multFloat(cl::Kernel(program, "multFloat"));
+	cl::EnqueueArgs eargs(queue, cl::NullRange, cl::NDRange(1000), cl::NullRange);
+
+	while (state.KeepRunning())
+	{			
+		multFloat(eargs, buffer_in, buffer_out).wait();
+	}
+
+	float output[1000];
+	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(int) * 1000, output);
+}
+BENCHMARK(BM_OpenCLConvergedExecution)
+->Unit(benchmark::kMicrosecond)
+->MinTime(1.0);
+
+float dummyOut_BM_CPUFLOPs;
+static void BM_CPUFLOPs(benchmark::State& state)
+{
+	float x = 1.01010101f;
+	while (state.KeepRunning())
+	{
+		for (auto i = 0; i < 1000000; i++) {
+			x *= 1.01010101f;
+		}
+	}
+}
+BENCHMARK(BM_CPUFLOPs)
+	->Unit(benchmark::kNanosecond)
+	->MinTime(1.0);
 
 static void BM_OpenCLContextCreation(benchmark::State& state)
 {
