@@ -9,7 +9,9 @@ set (GLOBAL_VERSION_PATCH 0)
 
 # Options
 option (USE_CUDA "Include CUDA code" ON) 
+option (USE_CUDA_BENCHMARK "Include Google Benchmark Framework Tests for CUDA" ON)
 option (USE_OPENCL "Include OpenCL code" ON) 
+option (USE_OPENCL_BENCHMARK "Include Google Benchmark Framework Tests for OpenCL" ON)
 option (USE_OPENGL "Include OpenGL code" OFF)
 option (USE_GTEST "Run Google Test Framework Tests" ON)
 
@@ -26,7 +28,7 @@ if (USE_OPENGL)
 endif ()
 
 if (USE_GTEST)
-	configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
+	configure_file(CMakeLists.txt.gtest.in googletest-download/CMakeLists.txt)
 	execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
 	  RESULT_VARIABLE result
 	  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
@@ -60,6 +62,32 @@ if (USE_GTEST)
 	#add_executable(example example.cpp)
 	#target_link_libraries(example gtest_main)
 	#add_test(NAME example_test COMMAND example)
+endif()
+
+
+if (USE_CUDA_BENCHMARK OR USE_OPENCL_BENCHMARK)
+	configure_file(CMakeLists.txt.gbench.in googlebenchmark-download/CMakeLists.txt)
+	execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+	  RESULT_VARIABLE result
+	  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googlebenchmark-download )
+	if(result)
+	  message(FATAL_ERROR "CMake step for googlebenchmark failed: ${result}")
+	endif()
+	execute_process(COMMAND ${CMAKE_COMMAND} --build .
+	  RESULT_VARIABLE result
+	  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googlebenchmark-download )
+	if(result)
+	  message(FATAL_ERROR "Build step for googlebenchmark failed: ${result}")
+	endif()
+
+	# Add googletest directly to our build. This defines
+	# the gbench and gtest_main targets.
+	add_subdirectory(${CMAKE_BINARY_DIR}/googlebenchmark-src
+					 ${CMAKE_BINARY_DIR}/googlebenchmark-build)
+
+	## Now simply link against benchmark as needed. Eg
+	#add_executable(example example.cpp)
+	#target_link_libraries(example benchmark)
 endif()
 
 # Do not build, because of a bug in the 2.0.0 release of glew on Windows

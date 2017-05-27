@@ -54,3 +54,24 @@ if (USE_GTEST)
 	
 	add_test(NAME opencl_helpers COMMAND opencl_helpers_unittest)
 endif()
+
+if(USE_OPENCL_BENCHMARK)
+		add_executable(
+		opencl_benchmark
+		opencl_benchmark.cc
+	)
+
+	add_dependencies(
+		opencl_benchmark
+		opencl_helpers
+		benchmark
+	)
+
+	target_link_libraries(
+		opencl_benchmark
+		opencl_helpers
+		benchmark
+		${OpenCL_LIBRARIES}
+	)
+	
+endif()
