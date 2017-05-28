@@ -174,7 +174,7 @@ static void BM_OpenCLDivergedExecution(benchmark::State& state)
 				float x = in[get_global_id(0)];
 				float y = (float)get_local_id(0);
 
-				if (x % 2) {
+				if (x < 0.5f) {
 					y = y * x;
 				} else {
 					y = y / x;
