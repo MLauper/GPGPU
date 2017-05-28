@@ -105,15 +105,15 @@ static void BM_OpenCLConvergedExecution(benchmark::State& state)
 	// Provide Kernel Code
 	std::string kernelCode =
 		R"CLC(
-			void kernel divergedKernel(global const float* in, global float* out){
+			void kernel convergedKernel(global const float* in, global float* out){
 				
 				float x = in[get_global_id(0)];
 				float y = (float)get_local_id(0);
 
-				if (x < 32768) {
-					y = y * x;
+				if (x < 0.5f) {
+					y = sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(y * x)))))));
 				} else {
-					y = y / x;
+					y = sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(y / x)))))));
 				}
 
 				out[get_global_id(0)] = y;
@@ -133,7 +133,8 @@ static void BM_OpenCLConvergedExecution(benchmark::State& state)
 	cl::CommandQueue queue(context, benchmarkingDevice);
 
 	// Copy Data from Host to Device
-	queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(float) * 65536, randomFloats);
+	int zeroes[65536] = { 0 };
+	queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(float) * 65536, zeroes);
 
 	size_t maxWorkGroupSize;
 	benchmarkingDevice.getInfo(CL_DEVICE_MAX_WORK_GROUP_SIZE, &maxWorkGroupSize);
@@ -142,12 +143,12 @@ static void BM_OpenCLConvergedExecution(benchmark::State& state)
 	globalSize = 65536;
 	localSize = maxWorkGroupSize;
 
-	cl::make_kernel<cl::Buffer&, cl::Buffer&> divergedKernel(cl::Kernel(program, "divergedKernel"));
+	cl::make_kernel<cl::Buffer&, cl::Buffer&> convergedKernel(cl::Kernel(program, "convergedKernel"));
 	cl::EnqueueArgs eargs(queue, globalSize, localSize);
 
 	while (state.KeepRunning())
 	{
-		divergedKernel(eargs, buffer_in, buffer_out).wait();
+		convergedKernel(eargs, buffer_in, buffer_out).wait();
 	}
 
 	float output[65536];
@@ -175,9 +176,9 @@ static void BM_OpenCLDivergedExecution(benchmark::State& state)
 				float y = (float)get_local_id(0);
 
 				if (x < 0.5f) {
-					y = y * x;
+					y = sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(y * x)))))));
 				} else {
-					y = y / x;
+					y = sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(y / x)))))));
 				}
 
 				out[get_global_id(0)] = y;
