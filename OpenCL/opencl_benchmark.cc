@@ -1,5 +1,7 @@
 #include "opencl_benchmark.h"
 #include <iostream>
+#include <ratio>
+#include <chrono>
 
 cl::Device benchmarkingDevice;
 
@@ -139,6 +141,126 @@ static void BM_OpenCLConvergedExecution(benchmark::State& state)
 }
 BENCHMARK(BM_OpenCLConvergedExecution)
 ->Unit(benchmark::kMicrosecond)
+->MinTime(1.0);
+
+static void BM_OpenCLFLOPS(benchmark::State& state)
+{
+	// Create Context on Device
+	cl::Context context({ benchmarkingDevice });
+
+	// Create Program source Object
+	cl::Program::Sources sources;
+
+	// Provide Kernel Code
+	std::string kernelCode =
+		R"CLC(
+			void kernel multFloat(global const float* in, global float* out){
+				
+				float x = in[get_global_id(0)];
+				float y = (float)get_local_id(0);
+
+				y = y * x;
+
+				out[get_global_id(0)] = y;
+			}
+		)CLC";
+	sources.push_back({ kernelCode.c_str() , kernelCode.length() });
+
+	// Create Program with Source in the created Context and Build the Program
+	cl::Program program(context, sources);
+	program.build({ benchmarkingDevice });
+
+	// Create Buffer Objects
+	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(float) * 65536);
+	cl::Buffer buffer_out(context, CL_MEM_READ_WRITE, sizeof(float) * 65536);
+
+	// Create Command Queue
+	cl::CommandQueue queue(context, benchmarkingDevice);
+
+	// Copy Data from Host to Device
+	queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(float) * 65536, randomFloats);
+
+	size_t maxWorkGroupSize;
+	benchmarkingDevice.getInfo(CL_DEVICE_MAX_WORK_GROUP_SIZE, &maxWorkGroupSize);
+
+	cl::NDRange globalSize, localSize;
+	globalSize = 65536;
+	localSize = maxWorkGroupSize;
+
+	cl::make_kernel<cl::Buffer&, cl::Buffer&> multFloat(cl::Kernel(program, "multFloat"));
+	cl::EnqueueArgs eargs(queue, globalSize, localSize);
+
+	while (state.KeepRunning())
+	{
+		multFloat(eargs, buffer_in, buffer_out).wait();
+	}
+
+	float output[65536];
+	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(float) * 65536, output);
+	queue.finish();
+
+}
+BENCHMARK(BM_OpenCLFLOPS)
+->MinTime(1.0);
+
+static void BM_OpenCLIntOPS(benchmark::State& state)
+{
+	// Create Context on Device
+	cl::Context context({ benchmarkingDevice });
+
+	// Create Program source Object
+	cl::Program::Sources sources;
+
+	// Provide Kernel Code
+	std::string kernelCode =
+		R"CLC(
+			void kernel multInt(global const int* in, global int* out){
+				
+				float x = in[get_global_id(0)];
+				float y = (int)get_local_id(0);
+
+				y = y * x;
+
+				out[get_global_id(0)] = y;
+			}
+		)CLC";
+	sources.push_back({ kernelCode.c_str() , kernelCode.length() });
+
+	// Create Program with Source in the created Context and Build the Program
+	cl::Program program(context, sources);
+	program.build({ benchmarkingDevice });
+
+	// Create Buffer Objects
+	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(int) * 65536);
+	cl::Buffer buffer_out(context, CL_MEM_READ_WRITE, sizeof(int) * 65536);
+
+	// Create Command Queue
+	cl::CommandQueue queue(context, benchmarkingDevice);
+
+	// Copy Data from Host to Device
+	queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(int) * 65536, randomIntegers);
+
+	size_t maxWorkGroupSize;
+	benchmarkingDevice.getInfo(CL_DEVICE_MAX_WORK_GROUP_SIZE, &maxWorkGroupSize);
+
+	cl::NDRange globalSize, localSize;
+	globalSize = 65536;
+	localSize = maxWorkGroupSize;
+
+	cl::make_kernel<cl::Buffer&, cl::Buffer&> multInt(cl::Kernel(program, "multInt"));
+	cl::EnqueueArgs eargs(queue, globalSize, localSize);
+
+	while (state.KeepRunning())
+	{
+		multInt(eargs, buffer_in, buffer_out).wait();
+	}
+
+	float output[65536];
+	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(int) * 65536, output);
+	queue.finish();
+
+}
+BENCHMARK(BM_OpenCLIntOPS)
 ->MinTime(1.0);
 
 float dummyOut_BM_CPUFLOPs;

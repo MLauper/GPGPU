@@ -13,6 +13,9 @@
 *	measure the performance of OpenCL.
 */
 
+extern float randomFloats[];
+extern int randomIntegers[];
+
 /*! \brief Contains benchmarks for OpenCL
  *
  * This namepsace contains all demonstrations for OpenCL demonstratoins.

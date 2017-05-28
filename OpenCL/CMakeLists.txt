@@ -56,9 +56,11 @@ if (USE_GTEST)
 endif()
 
 if(USE_OPENCL_BENCHMARK)
-		add_executable(
+	add_executable(
 		opencl_benchmark
 		opencl_benchmark.cc
+		opencl_benchmark.h
+		random_data.cc
 	)
 
 	add_dependencies(
