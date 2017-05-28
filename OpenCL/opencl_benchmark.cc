@@ -52,7 +52,7 @@ static void BM_OpenCLBasicTest(benchmark::State& state)
 		// Provide Kernel Code
 		std::string kernelCode =
 			R"CLC(
-			void kernel addInt(global const int* A, global const int* B, global int* C){       
+			void kernel addIntBasic(global const int* A, global const int* B, global int* C){       
 				C[get_global_id(0)]=A[get_global_id(0)]+B[get_global_id(0)];                 
 			}
 		)CLC";
@@ -79,9 +79,9 @@ static void BM_OpenCLBasicTest(benchmark::State& state)
 		queue.enqueueWriteBuffer(buffer_B, CL_TRUE, 0, sizeof(int) * 10, B);
 
 		// Execute the Kernel
-		cl::make_kernel<cl::Buffer&, cl::Buffer&, cl::Buffer&> addInt(cl::Kernel(program, "addInt"));
+		cl::make_kernel<cl::Buffer&, cl::Buffer&, cl::Buffer&> addIntBasic(cl::Kernel(program, "addIntBasic"));
 		cl::EnqueueArgs eargs(queue, cl::NullRange, cl::NDRange(10), cl::NullRange);
-		addInt(eargs, buffer_A, buffer_B, buffer_C).wait();
+		addIntBasic(eargs, buffer_A, buffer_B, buffer_C).wait();
 
 		// Output Data
 		int C[10];
@@ -105,7 +105,7 @@ static void BM_OpenCLConvergedExecution(benchmark::State& state)
 	// Provide Kernel Code
 	std::string kernelCode =
 		R"CLC(
-			void kernel multFloat(global const float* in, global float* out){
+			void kernel divergedKernel(global const float* in, global float* out){
 				
 				float x = in[get_global_id(0)];
 				float y = (float)get_local_id(0);
@@ -142,12 +142,12 @@ static void BM_OpenCLConvergedExecution(benchmark::State& state)
 	globalSize = 65536;
 	localSize = maxWorkGroupSize;
 
-	cl::make_kernel<cl::Buffer&, cl::Buffer&> multFloat(cl::Kernel(program, "multFloat"));
+	cl::make_kernel<cl::Buffer&, cl::Buffer&> divergedKernel(cl::Kernel(program, "divergedKernel"));
 	cl::EnqueueArgs eargs(queue, globalSize, localSize);
 
 	while (state.KeepRunning())
 	{
-		multFloat(eargs, buffer_in, buffer_out).wait();
+		divergedKernel(eargs, buffer_in, buffer_out).wait();
 	}
 
 	float output[65536];
@@ -169,7 +169,7 @@ static void BM_OpenCLDivergedExecution(benchmark::State& state)
 	// Provide Kernel Code
 	std::string kernelCode =
 		R"CLC(
-			void kernel multFloat(global const float* in, global float* out){
+			void kernel divergedKernel(global const float* in, global float* out){
 				
 				float x = in[get_global_id(0)];
 				float y = (float)get_local_id(0);
@@ -206,12 +206,12 @@ static void BM_OpenCLDivergedExecution(benchmark::State& state)
 	globalSize = 65536;
 	localSize = maxWorkGroupSize;
 
-	cl::make_kernel<cl::Buffer&, cl::Buffer&> multFloat(cl::Kernel(program, "multFloat"));
+	cl::make_kernel<cl::Buffer&, cl::Buffer&> divergedKernel(cl::Kernel(program, "divergedKernel"));
 	cl::EnqueueArgs eargs(queue, globalSize, localSize);
 
 	while (state.KeepRunning())
 	{
-		multFloat(eargs, buffer_in, buffer_out).wait();
+		divergedKernel(eargs, buffer_in, buffer_out).wait();
 	}
 
 	float output[65536];
