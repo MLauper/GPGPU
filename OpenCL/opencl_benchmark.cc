@@ -90,9 +90,9 @@ static void BM_OpenCLBasicTest(benchmark::State& state)
 		queue.enqueueReadBuffer(buffer_C, CL_TRUE, 0, sizeof(int) * 10, C);
 	}
 }
-BENCHMARK(BM_OpenCLBasicTest)
-	->Unit(benchmark::kMillisecond)
-	->MinTime(1.0);
+//BENCHMARK(BM_OpenCLBasicTest)
+//	->Unit(benchmark::kMillisecond)
+//	->MinTime(1.0);
 
 static void BM_OpenCLConvergedExecution(benchmark::State& state)
 {
@@ -111,9 +111,9 @@ static void BM_OpenCLConvergedExecution(benchmark::State& state)
 				float y = (float)get_local_id(0);
 
 				if (x < 0.5f) {
-					y = sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(y * x)))))));
+					y = (float)sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(y * x)))))));
 				} else {
-					y = sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(y / x)))))));
+					y = (float)sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(y / x)))))));
 				}
 
 				out[get_global_id(0)] = y;
@@ -155,9 +155,8 @@ static void BM_OpenCLConvergedExecution(benchmark::State& state)
 	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(float) * 65536, output);
 	queue.finish();
 }
-BENCHMARK(BM_OpenCLConvergedExecution)
-->Unit(benchmark::kMicrosecond)
-->MinTime(1.0);
+//BENCHMARK(BM_OpenCLConvergedExecution)
+//->MinTime(1.0);
 
 static void BM_OpenCLDivergedExecution(benchmark::State& state)
 {
@@ -176,9 +175,9 @@ static void BM_OpenCLDivergedExecution(benchmark::State& state)
 				float y = (float)get_local_id(0);
 
 				if (x < 0.5f) {
-					y = sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(y * x)))))));
+					y = (float)sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(y * x)))))));
 				} else {
-					y = sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(y / x)))))));
+					y = (float)sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(y / x)))))));
 				}
 
 				out[get_global_id(0)] = y;
@@ -219,9 +218,8 @@ static void BM_OpenCLDivergedExecution(benchmark::State& state)
 	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(float) * 65536, output);
 	queue.finish();
 }
-BENCHMARK(BM_OpenCLDivergedExecution)
-->Unit(benchmark::kMicrosecond)
-->MinTime(1.0);
+//BENCHMARK(BM_OpenCLDivergedExecution)
+//->MinTime(1.0);
 
 static void BM_OpenCLFLOPS(benchmark::State& state)
 {
@@ -280,8 +278,8 @@ static void BM_OpenCLFLOPS(benchmark::State& state)
 	queue.finish();
 
 }
-BENCHMARK(BM_OpenCLFLOPS)
-->MinTime(1.0);
+//BENCHMARK(BM_OpenCLFLOPS)
+//->MinTime(1.0);
 
 static void BM_OpenCLIntOPS(benchmark::State& state)
 {
@@ -349,8 +347,49 @@ static void BM_OpenCLIntOPS(benchmark::State& state)
 	queue.finish();
 
 }
-BENCHMARK(BM_OpenCLIntOPS)
-->MinTime(1.0);
+//BENCHMARK(BM_OpenCLIntOPS)
+//->MinTime(1.0);
+
+static void BM_OpenCLBandwidthHostToDevice(benchmark::State& state)
+{
+	// Transfer size
+	int chunkSize = state.range(0);
+
+	// Create Context on Device
+	cl::Context context({ benchmarkingDevice });
+
+	// Create Buffer Object
+	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(int) * chunkSize);
+
+	// Create Command Queue
+	cl::CommandQueue queue(context, benchmarkingDevice);
+
+	// Create input data
+	std::vector<int> inputVector(chunkSize, 0);
+	int* input = &inputVector[0];
+
+	// Copy Data from Host to Device
+	while (state.KeepRunning()) {
+		queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(int) * chunkSize, input);
+	}
+
+	state.SetBytesProcessed(state.iterations() * chunkSize * sizeof(int));
+}
+BENCHMARK(BM_OpenCLBandwidthHostToDevice)
+->MinTime(1.0)
+->Args({ 1 })
+->Args({ 8 })
+->Args({ 16 })
+->Args({ 512 })
+->Args({ 1024 })
+->Args({ 16384 })
+->Args({ 131072 })
+->Args({ 1048576 })
+->Args({ 8388608 })
+->Args({ 16777216 })
+->Args({ 33554432 })
+->Args({ 67108864 })
+->Args({ 134217728 });
 
 float dummyOut_BM_CPUFLOPs;
 static void BM_CPUFLOPs(benchmark::State& state)
@@ -363,9 +402,9 @@ static void BM_CPUFLOPs(benchmark::State& state)
 		}
 	}
 }
-BENCHMARK(BM_CPUFLOPs)
-	->Unit(benchmark::kNanosecond)
-	->MinTime(1.0);
+//BENCHMARK(BM_CPUFLOPs)
+//	->Unit(benchmark::kNanosecond)
+//	->MinTime(1.0);
 
 static void BM_OpenCLContextCreation(benchmark::State& state)
 {
