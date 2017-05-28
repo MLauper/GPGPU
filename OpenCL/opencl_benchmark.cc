@@ -250,9 +250,18 @@ static void BM_OpenCLIntOPS(benchmark::State& state)
 	cl::make_kernel<cl::Buffer&, cl::Buffer&> multInt(cl::Kernel(program, "multInt"));
 	cl::EnqueueArgs eargs(queue, globalSize, localSize);
 
+	// Benchmark
 	while (state.KeepRunning())
 	{
+		auto start = std::chrono::high_resolution_clock::now();
+
 		multInt(eargs, buffer_in, buffer_out).wait();
+
+		auto end = std::chrono::high_resolution_clock::now();
+		auto elapsed_seconds =
+			std::chrono::duration_cast<std::chrono::duration<double>>(
+				end - start);
+		state.SetIterationTime(elapsed_seconds.count());
 	}
 
 	float output[65536];
