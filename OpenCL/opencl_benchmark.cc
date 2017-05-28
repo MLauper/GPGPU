@@ -60,7 +60,7 @@ static void BM_OpenCLBasicTest(benchmark::State& state)
 
 		// Create Program with Source in the created Context and Build the Program
 		cl::Program program(context, sources);
-		program.build({ benchmarkingDevice });
+		program.build({benchmarkingDevice});
 
 		// Create Buffer Objects
 		cl::Buffer buffer_A(context, CL_MEM_READ_WRITE, sizeof(int) * 10);
@@ -90,6 +90,7 @@ static void BM_OpenCLBasicTest(benchmark::State& state)
 		queue.enqueueReadBuffer(buffer_C, CL_TRUE, 0, sizeof(int) * 10, C);
 	}
 }
+
 //BENCHMARK(BM_OpenCLBasicTest)
 //	->Unit(benchmark::kMillisecond)
 //	->MinTime(1.0);
@@ -97,7 +98,7 @@ static void BM_OpenCLBasicTest(benchmark::State& state)
 static void BM_OpenCLConvergedExecution(benchmark::State& state)
 {
 	// Create Context on Device
-	cl::Context context({ benchmarkingDevice });
+	cl::Context context({benchmarkingDevice});
 
 	// Create Program source Object
 	cl::Program::Sources sources;
@@ -119,11 +120,11 @@ static void BM_OpenCLConvergedExecution(benchmark::State& state)
 				out[get_global_id(0)] = y;
 			}
 		)CLC";
-	sources.push_back({ kernelCode.c_str() , kernelCode.length() });
+	sources.push_back({kernelCode.c_str() , kernelCode.length()});
 
 	// Create Program with Source in the created Context and Build the Program
 	cl::Program program(context, sources);
-	program.build({ benchmarkingDevice });
+	program.build({benchmarkingDevice});
 
 	// Create Buffer Objects
 	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(float) * 65536);
@@ -133,7 +134,7 @@ static void BM_OpenCLConvergedExecution(benchmark::State& state)
 	cl::CommandQueue queue(context, benchmarkingDevice);
 
 	// Copy Data from Host to Device
-	int zeroes[65536] = { 0 };
+	int zeroes[65536] = {0};
 	queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(float) * 65536, zeroes);
 
 	size_t maxWorkGroupSize;
@@ -155,13 +156,14 @@ static void BM_OpenCLConvergedExecution(benchmark::State& state)
 	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(float) * 65536, output);
 	queue.finish();
 }
+
 //BENCHMARK(BM_OpenCLConvergedExecution)
 //->MinTime(1.0);
 
 static void BM_OpenCLDivergedExecution(benchmark::State& state)
 {
 	// Create Context on Device
-	cl::Context context({ benchmarkingDevice });
+	cl::Context context({benchmarkingDevice});
 
 	// Create Program source Object
 	cl::Program::Sources sources;
@@ -183,11 +185,11 @@ static void BM_OpenCLDivergedExecution(benchmark::State& state)
 				out[get_global_id(0)] = y;
 			}
 		)CLC";
-	sources.push_back({ kernelCode.c_str() , kernelCode.length() });
+	sources.push_back({kernelCode.c_str() , kernelCode.length()});
 
 	// Create Program with Source in the created Context and Build the Program
 	cl::Program program(context, sources);
-	program.build({ benchmarkingDevice });
+	program.build({benchmarkingDevice});
 
 	// Create Buffer Objects
 	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(float) * 65536);
@@ -218,13 +220,14 @@ static void BM_OpenCLDivergedExecution(benchmark::State& state)
 	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(float) * 65536, output);
 	queue.finish();
 }
+
 //BENCHMARK(BM_OpenCLDivergedExecution)
 //->MinTime(1.0);
 
 static void BM_OpenCLFLOPS(benchmark::State& state)
 {
 	// Create Context on Device
-	cl::Context context({ benchmarkingDevice });
+	cl::Context context({benchmarkingDevice});
 
 	// Create Program source Object
 	cl::Program::Sources sources;
@@ -242,11 +245,11 @@ static void BM_OpenCLFLOPS(benchmark::State& state)
 				out[get_global_id(0)] = y;
 			}
 		)CLC";
-	sources.push_back({ kernelCode.c_str() , kernelCode.length() });
+	sources.push_back({kernelCode.c_str() , kernelCode.length()});
 
 	// Create Program with Source in the created Context and Build the Program
 	cl::Program program(context, sources);
-	program.build({ benchmarkingDevice });
+	program.build({benchmarkingDevice});
 
 	// Create Buffer Objects
 	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(float) * 65536);
@@ -276,15 +279,15 @@ static void BM_OpenCLFLOPS(benchmark::State& state)
 	float output[65536];
 	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(float) * 65536, output);
 	queue.finish();
-
 }
+
 //BENCHMARK(BM_OpenCLFLOPS)
 //->MinTime(1.0);
 
 static void BM_OpenCLIntOPS(benchmark::State& state)
 {
 	// Create Context on Device
-	cl::Context context({ benchmarkingDevice });
+	cl::Context context({benchmarkingDevice});
 
 	// Create Program source Object
 	cl::Program::Sources sources;
@@ -302,11 +305,11 @@ static void BM_OpenCLIntOPS(benchmark::State& state)
 				out[get_global_id(0)] = y;
 			}
 		)CLC";
-	sources.push_back({ kernelCode.c_str() , kernelCode.length() });
+	sources.push_back({kernelCode.c_str() , kernelCode.length()});
 
 	// Create Program with Source in the created Context and Build the Program
 	cl::Program program(context, sources);
-	program.build({ benchmarkingDevice });
+	program.build({benchmarkingDevice});
 
 	// Create Buffer Objects
 	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(int) * 65536);
@@ -345,8 +348,8 @@ static void BM_OpenCLIntOPS(benchmark::State& state)
 	float output[65536];
 	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(int) * 65536, output);
 	queue.finish();
-
 }
+
 //BENCHMARK(BM_OpenCLIntOPS)
 //->MinTime(1.0);
 
@@ -356,7 +359,7 @@ static void BM_OpenCLBandwidthHostToDevice(benchmark::State& state)
 	int chunkSize = state.range(0);
 
 	// Create Context on Device
-	cl::Context context({ benchmarkingDevice });
+	cl::Context context({benchmarkingDevice});
 
 	// Create Buffer Object
 	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(int) * chunkSize);
@@ -369,12 +372,14 @@ static void BM_OpenCLBandwidthHostToDevice(benchmark::State& state)
 	int* input = &inputVector[0];
 
 	// Copy Data from Host to Device
-	while (state.KeepRunning()) {
+	while (state.KeepRunning())
+	{
 		queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(int) * chunkSize, input);
 	}
 
 	state.SetBytesProcessed(state.iterations() * chunkSize * sizeof(int));
 }
+
 //BENCHMARK(BM_OpenCLBandwidthHostToDevice)
 //->MinTime(1.0)
 //->Args({ 1 })
@@ -397,7 +402,7 @@ static void BM_OpenCLBandwidthDeviceToDevice(benchmark::State& state)
 	int chunkSize = state.range(0);
 
 	// Create Context on Device
-	cl::Context context({ benchmarkingDevice });
+	cl::Context context({benchmarkingDevice});
 
 	// Create Buffer Object
 	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(int) * chunkSize);
@@ -414,28 +419,30 @@ static void BM_OpenCLBandwidthDeviceToDevice(benchmark::State& state)
 	queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(int) * chunkSize, input);
 
 	// Copy Data from Device to Device
-	while (state.KeepRunning()) {
+	while (state.KeepRunning())
+	{
 		queue.enqueueCopyBuffer(buffer_in, buffer_device, 0, 0, sizeof(int) * chunkSize);
 		queue.finish();
 	}
 
 	state.SetBytesProcessed(state.iterations() * chunkSize * sizeof(int));
 }
-BENCHMARK(BM_OpenCLBandwidthDeviceToDevice)
-->MinTime(1.0)
-->Args({ 1 })
-->Args({ 8 })
-->Args({ 16 })
-->Args({ 512 })
-->Args({ 1024 })
-->Args({ 16384 })
-->Args({ 131072 })
-->Args({ 1048576 })
-->Args({ 8388608 })
-->Args({ 16777216 })
-->Args({ 33554432 })
-->Args({ 67108864 })
-->Args({ 134217728 });
+
+//BENCHMARK(BM_OpenCLBandwidthDeviceToDevice)
+//->MinTime(1.0)
+//->Args({ 1 })
+//->Args({ 8 })
+//->Args({ 16 })
+//->Args({ 512 })
+//->Args({ 1024 })
+//->Args({ 16384 })
+//->Args({ 131072 })
+//->Args({ 1048576 })
+//->Args({ 8388608 })
+//->Args({ 16777216 })
+//->Args({ 33554432 })
+//->Args({ 67108864 })
+//->Args({ 134217728 });
 
 static void BM_OpenCLBandwidthDeviceToHost(benchmark::State& state)
 {
@@ -443,7 +450,7 @@ static void BM_OpenCLBandwidthDeviceToHost(benchmark::State& state)
 	int chunkSize = state.range(0);
 
 	// Create Context on Device
-	cl::Context context({ benchmarkingDevice });
+	cl::Context context({benchmarkingDevice});
 
 	// Create Buffer Object
 	cl::Buffer buffer_inout(context, CL_MEM_READ_WRITE, sizeof(int) * chunkSize);
@@ -459,12 +466,14 @@ static void BM_OpenCLBandwidthDeviceToHost(benchmark::State& state)
 	queue.enqueueWriteBuffer(buffer_inout, CL_TRUE, 0, sizeof(int) * chunkSize, inout);
 
 	// Copy Data from Host to Device
-	while (state.KeepRunning()) {
+	while (state.KeepRunning())
+	{
 		queue.enqueueReadBuffer(buffer_inout, CL_TRUE, 0, sizeof(int) * chunkSize, inout);
 	}
 
 	state.SetBytesProcessed(state.iterations() * chunkSize * sizeof(int));
 }
+
 //BENCHMARK(BM_OpenCLBandwidthDeviceToHost)
 //->MinTime(1.0)
 //->Args({ 1 })
@@ -481,31 +490,165 @@ static void BM_OpenCLBandwidthDeviceToHost(benchmark::State& state)
 //->Args({ 67108864 })
 //->Args({ 134217728 });
 
+static void BM_OpenCLKernelCreation(benchmark::State& state)
+{
+	int kernels = state.range(0);
+	int data = state.range(1);
+	int dataPerKernel = static_cast<int>(data / kernels);
+	std::cout << "Kernels: " << kernels << ", data: " << data << ", dataPerKernel: " << dataPerKernel << "\n";
+
+	// Create Context on Device
+	cl::Context context({benchmarkingDevice});
+
+	// Create Program source Object
+	cl::Program::Sources sources;
+
+	// Provide Kernel Code
+	std::string kernelCode =
+		R"CLC(
+			void kernel gridStrideKernel(const int objectsPerKernel, global const int* input, global int* output){
+				
+				int id = get_global_id(0);
+				int startElement = id * objectsPerKernel;
+				
+				for (int i = startElement; i < (startElement+objectsPerKernel); i++){
+					output[i] = input[i] * id;
+				}
+			}
+		)CLC";
+	sources.push_back({kernelCode.c_str() , kernelCode.length()});
+
+	// Create Program with Source in the created Context and Build the Program
+	cl::Program program(context, sources);
+	program.build({benchmarkingDevice});
+
+	// Create Buffer Objects
+	cl::Buffer input(context, CL_MEM_READ_WRITE, sizeof(int) * data);
+	cl::Buffer output(context, CL_MEM_READ_WRITE, sizeof(int) * data);
+
+	// Input Data
+	std::vector<int> inputVector(data, 1);
+	int* inputData = &inputVector[0];
+
+	// Create Command Queue
+	cl::CommandQueue queue(context, benchmarkingDevice);
+
+	// Copy Data from Host to Device
+	queue.enqueueWriteBuffer(input, CL_TRUE, 0, sizeof(int) * data, inputData);
+
+	// Get global and local size
+	size_t maxWorkGroupSize;
+	benchmarkingDevice.getInfo(CL_DEVICE_MAX_WORK_GROUP_SIZE, &maxWorkGroupSize);
+
+	cl::NDRange globalSize, localSize;
+	globalSize = kernels;
+	localSize = maxWorkGroupSize>kernels ? kernels : maxWorkGroupSize;
+
+	// Create Kernel
+	cl::make_kernel<int, cl::Buffer&, cl::Buffer&> gridStrideKernel(cl::Kernel(program, "gridStrideKernel"));
+	cl::EnqueueArgs eargs(queue, globalSize, localSize);
+	//std::cout << "Global Size: " << kernels << ", Local Size: " << (maxWorkGroupSize>kernels ? kernels : maxWorkGroupSize) << "\n";
+
+	while (state.KeepRunning())
+	{
+		gridStrideKernel(eargs, dataPerKernel, input, output).wait();
+	}
+
+	// Ouptut Data
+	std::vector<int> outputVector(data, 0);
+	int* outputData = &inputVector[0];
+
+	// Copy Data from Device to Host
+	queue.enqueueReadBuffer(output, CL_TRUE, 0, sizeof(int) * data, outputData);
+
+	// Report speed
+	state.SetBytesProcessed(state.iterations() * data * sizeof(int));
+
+	for (auto i = 0; i < 10; i++)
+	{
+		std::cout << outputData[i] << " ";
+	}
+	std::cout << "\n";
+}
+
+BENCHMARK(BM_OpenCLKernelCreation)
+->MinTime(1.0)
+->Args({ 1, 1 })
+->Args({ 1, 10 })
+->Args({ 8, 8 })
+->Args({ 8, 80 })
+->Args({16, 16})
+->Args({16, 160})
+->Args({512, 512})
+->Args({512, 5120})
+->Args({ 1024, 1024 })
+->Args({ 1024, 10240 })
+->Args({ 16384, 16384 })
+->Args({ 16384, 163840 })
+->Args({ 131072, 131072 })
+->Args({ 131072, 1310720 })
+->Args({ 1048576, 1048576 })
+->Args({ 1048576, 10485760 })
+->Args({ 1048576, 104857600 })
+->Args({ 134217728, 134217728 })
+->Args({ 67108864, 134217728 })
+->Args({ 33554432, 134217728 })
+->Args({ 16777216, 134217728 })
+->Args({ 8388608, 134217728 })
+->Args({ 4194304, 134217728 })
+->Args({ 2097152, 134217728 })
+->Args({ 1048576, 134217728 })
+->Args({ 524288, 134217728 })
+->Args({ 262144, 134217728 })
+->Args({ 131072, 134217728 })
+->Args({ 65536, 134217728 })
+->Args({ 32768, 134217728 })
+->Args({ 16384, 134217728 })
+->Args({ 8192, 134217728 })
+->Args({ 4096, 134217728 })
+->Args({ 2048, 134217728 })
+->Args({ 1024, 134217728 });
+/* The following Kernels overloaded my GPU and caused a crash of the system
+->Args({ 512, 134217728 })
+->Args({ 256, 134217728 })
+->Args({ 128, 134217728 })
+->Args({ 64, 134217728 })
+->Args({ 32, 134217728 })
+->Args({ 16, 134217728 })
+->Args({ 8, 134217728 })
+->Args({ 4, 134217728 })
+->Args({ 2, 134217728 })
+->Args({ 1, 134217728 })*/
+
+
 float dummyOut_BM_CPUFLOPs;
 static void BM_CPUFLOPs(benchmark::State& state)
 {
 	float x = 1.01010101f;
 	while (state.KeepRunning())
 	{
-		for (auto i = 0; i < 1000000; i++) {
+		for (auto i = 0; i < 1000000; i++)
+		{
 			x *= 1.01010101f;
 		}
 	}
 }
+
 //BENCHMARK(BM_CPUFLOPs)
 //	->Unit(benchmark::kNanosecond)
 //	->MinTime(1.0);
 
 static void BM_OpenCLContextCreation(benchmark::State& state)
 {
-	while (state.KeepRunning()) {
-		
+	while (state.KeepRunning())
+	{
 	}
 	state.SetLabel("fefe");
 }
 
 
 int autoSelectDevice = 0;
+
 void selectBenchmarkDevice()
 {
 	std::cout << "Select Benchmarking Device:\n";
@@ -528,17 +671,19 @@ void selectBenchmarkDevice()
 		{
 			std::string deviceName;
 			device.getInfo(CL_DEVICE_NAME, &deviceName);
-			
-			std::cout << "[" << i++ << "] " << platformName << ": " << deviceName << "\n";	
+
+			std::cout << "[" << i++ << "] " << platformName << ": " << deviceName << "\n";
 			allDevices.push_back(device);
 		}
 	}
 	std::cout << "\nSelect Device: ";
 
 	int deviceSelection;
-	if (autoSelectDevice == -1) {
+	if (autoSelectDevice == -1)
+	{
 		std::cin >> deviceSelection;
-	} else
+	}
+	else
 	{
 		deviceSelection = autoSelectDevice;
 	}
