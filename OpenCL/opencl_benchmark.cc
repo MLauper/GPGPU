@@ -375,7 +375,53 @@ static void BM_OpenCLBandwidthHostToDevice(benchmark::State& state)
 
 	state.SetBytesProcessed(state.iterations() * chunkSize * sizeof(int));
 }
-BENCHMARK(BM_OpenCLBandwidthHostToDevice)
+//BENCHMARK(BM_OpenCLBandwidthHostToDevice)
+//->MinTime(1.0)
+//->Args({ 1 })
+//->Args({ 8 })
+//->Args({ 16 })
+//->Args({ 512 })
+//->Args({ 1024 })
+//->Args({ 16384 })
+//->Args({ 131072 })
+//->Args({ 1048576 })
+//->Args({ 8388608 })
+//->Args({ 16777216 })
+//->Args({ 33554432 })
+//->Args({ 67108864 })
+//->Args({ 134217728 });
+
+static void BM_OpenCLBandwidthDeviceToDevice(benchmark::State& state)
+{
+	// Transfer size
+	int chunkSize = state.range(0);
+
+	// Create Context on Device
+	cl::Context context({ benchmarkingDevice });
+
+	// Create Buffer Object
+	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(int) * chunkSize);
+	cl::Buffer buffer_device(context, CL_MEM_READ_WRITE, sizeof(int) * chunkSize);
+
+	// Create Command Queue
+	cl::CommandQueue queue(context, benchmarkingDevice);
+
+	// Create input data
+	std::vector<int> inputVector(chunkSize, 0);
+	int* input = &inputVector[0];
+
+	// Copy Data from Host to Device
+	queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(int) * chunkSize, input);
+
+	// Copy Data from Device to Device
+	while (state.KeepRunning()) {
+		queue.enqueueCopyBuffer(buffer_in, buffer_device, 0, 0, sizeof(int) * chunkSize);
+		queue.finish();
+	}
+
+	state.SetBytesProcessed(state.iterations() * chunkSize * sizeof(int));
+}
+BENCHMARK(BM_OpenCLBandwidthDeviceToDevice)
 ->MinTime(1.0)
 ->Args({ 1 })
 ->Args({ 8 })
@@ -390,6 +436,50 @@ BENCHMARK(BM_OpenCLBandwidthHostToDevice)
 ->Args({ 33554432 })
 ->Args({ 67108864 })
 ->Args({ 134217728 });
+
+static void BM_OpenCLBandwidthDeviceToHost(benchmark::State& state)
+{
+	// Transfer size
+	int chunkSize = state.range(0);
+
+	// Create Context on Device
+	cl::Context context({ benchmarkingDevice });
+
+	// Create Buffer Object
+	cl::Buffer buffer_inout(context, CL_MEM_READ_WRITE, sizeof(int) * chunkSize);
+
+	// Create Command Queue
+	cl::CommandQueue queue(context, benchmarkingDevice);
+
+	// Create input data
+	std::vector<int> inputVector(chunkSize, 0);
+	int* inout = &inputVector[0];
+
+	// Write data once to device
+	queue.enqueueWriteBuffer(buffer_inout, CL_TRUE, 0, sizeof(int) * chunkSize, inout);
+
+	// Copy Data from Host to Device
+	while (state.KeepRunning()) {
+		queue.enqueueReadBuffer(buffer_inout, CL_TRUE, 0, sizeof(int) * chunkSize, inout);
+	}
+
+	state.SetBytesProcessed(state.iterations() * chunkSize * sizeof(int));
+}
+//BENCHMARK(BM_OpenCLBandwidthDeviceToHost)
+//->MinTime(1.0)
+//->Args({ 1 })
+//->Args({ 8 })
+//->Args({ 16 })
+//->Args({ 512 })
+//->Args({ 1024 })
+//->Args({ 16384 })
+//->Args({ 131072 })
+//->Args({ 1048576 })
+//->Args({ 8388608 })
+//->Args({ 16777216 })
+//->Args({ 33554432 })
+//->Args({ 67108864 })
+//->Args({ 134217728 });
 
 float dummyOut_BM_CPUFLOPs;
 static void BM_CPUFLOPs(benchmark::State& state)
@@ -415,6 +505,7 @@ static void BM_OpenCLContextCreation(benchmark::State& state)
 }
 
 
+int autoSelectDevice = 0;
 void selectBenchmarkDevice()
 {
 	std::cout << "Select Benchmarking Device:\n";
@@ -445,7 +536,12 @@ void selectBenchmarkDevice()
 	std::cout << "\nSelect Device: ";
 
 	int deviceSelection;
-	std::cin >> deviceSelection;
+	if (autoSelectDevice == -1) {
+		std::cin >> deviceSelection;
+	} else
+	{
+		deviceSelection = autoSelectDevice;
+	}
 
 	benchmarkingDevice = allDevices[deviceSelection];
 	std::string deviceName;
