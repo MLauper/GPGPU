@@ -224,7 +224,7 @@ static void BM_OpenCLDivergedExecution(benchmark::State& state)
 //BENCHMARK(BM_OpenCLDivergedExecution)
 //->MinTime(1.0);
 
-static void BM_OpenCLFLOPS(benchmark::State& state)
+static void BM_OpenCLFLOPS_RandomData(benchmark::State& state)
 {
 	// Create Context on Device
 	cl::Context context({benchmarkingDevice});
@@ -273,7 +273,15 @@ static void BM_OpenCLFLOPS(benchmark::State& state)
 
 	while (state.KeepRunning())
 	{
+		auto start = std::chrono::high_resolution_clock::now();
+
 		multFloat(eargs, buffer_in, buffer_out).wait();
+
+		auto end = std::chrono::high_resolution_clock::now();
+		auto elapsed_seconds =
+			std::chrono::duration_cast<std::chrono::duration<double>>(
+				end - start);
+		state.SetIterationTime(elapsed_seconds.count());
 	}
 
 	float output[65536];
@@ -281,11 +289,15 @@ static void BM_OpenCLFLOPS(benchmark::State& state)
 	queue.finish();
 }
 
-//BENCHMARK(BM_OpenCLFLOPS)
+//BENCHMARK(BM_OpenCLFLOPS_RandomData)
+//->UseManualTime()
 //->MinTime(1.0);
 
-static void BM_OpenCLIntOPS(benchmark::State& state)
+static void BM_OpenCLFLOPS_GeneratedData(benchmark::State& state)
 {
+	// Dynamic Data Input
+	int dataSize = state.range(0);
+
 	// Create Context on Device
 	cl::Context context({ benchmarkingDevice });
 
@@ -295,7 +307,7 @@ static void BM_OpenCLIntOPS(benchmark::State& state)
 	// Provide Kernel Code
 	std::string kernelCode =
 		R"CLC(
-			void kernel multInt(global const int* in, global int* out){
+			void kernel multFloat(global const float* in, global float* out){
 				
 				float x = in[get_global_id(0)];
 				float y = (int)get_local_id(0);
@@ -310,6 +322,98 @@ static void BM_OpenCLIntOPS(benchmark::State& state)
 	// Create Program with Source in the created Context and Build the Program
 	cl::Program program(context, sources);
 	program.build({ benchmarkingDevice });
+
+	// Create Buffer Objects
+	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(cl_float) * dataSize);
+	cl::Buffer buffer_out(context, CL_MEM_READ_WRITE, sizeof(cl_float) * dataSize);
+
+	// Create Command Queue
+	cl::CommandQueue queue(context, benchmarkingDevice);
+
+	// Generate Input Data
+	std::vector<cl_float> inputVector(dataSize, 0);
+	for (int i = 0; i < dataSize; i++)
+	{
+		inputVector[i] = static_cast<cl_float>(rand()) * 1.01010101f;
+	}
+	cl_float* input = &inputVector[0];
+
+	// Copy Data from Host to Device
+	queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(cl_float) * dataSize, input);
+
+	size_t maxWorkGroupSize;
+	benchmarkingDevice.getInfo(CL_DEVICE_MAX_WORK_GROUP_SIZE, &maxWorkGroupSize);
+
+	cl::NDRange globalSize, localSize;
+	globalSize = dataSize;
+	localSize = maxWorkGroupSize;
+	//std::cout << "Data Size: " << dataSize << " maxWorkGroupSize: " << maxWorkGroupSize << "\n";
+
+	cl::make_kernel<cl::Buffer&, cl::Buffer&> multFloat(cl::Kernel(program, "multFloat"));
+	cl::EnqueueArgs eargs(queue, globalSize, localSize);
+
+	// Benchmark
+	while (state.KeepRunning())
+	{
+		auto start = std::chrono::high_resolution_clock::now();
+
+		multFloat(eargs, buffer_in, buffer_out).wait();
+
+		auto end = std::chrono::high_resolution_clock::now();
+		auto elapsed_seconds =
+			std::chrono::duration_cast<std::chrono::duration<double>>(
+				end - start);
+		state.SetIterationTime(elapsed_seconds.count());
+	}
+
+	std::vector<cl_float> outputVector(dataSize, 0);
+	cl_float* output = &outputVector[0];
+	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(cl_float) * dataSize, output);
+	queue.finish();
+
+	// The returned "Bytes" processed is realy the number of Integers Processed!
+	state.SetBytesProcessed(state.iterations()*dataSize);
+}
+
+BENCHMARK(BM_OpenCLFLOPS_GeneratedData)
+->UseManualTime()
+->MinTime(1.0)
+->Args({ 2048 })
+->Args({ 8192 })
+->Args({ 65536 })
+->Args({ 524288 })
+->Args({ 8388608 })
+->Args({ 16777216 })
+->Args({ 33554432 })
+->Args({ 67108864 })
+->Args({ 134217728 });
+
+static void BM_OpenCLIntOPS_RandomData(benchmark::State& state)
+{
+	// Create Context on Device
+	cl::Context context({benchmarkingDevice});
+
+	// Create Program source Object
+	cl::Program::Sources sources;
+
+	// Provide Kernel Code
+	std::string kernelCode =
+		R"CLC(
+			void kernel multInt(global const int* in, global int* out){
+
+				int x = in[get_global_id(0)];
+				int y = (int)get_local_id(0);
+
+				y = y * x;
+
+				out[get_global_id(0)] = y;
+			}
+		)CLC";
+	sources.push_back({kernelCode.c_str() , kernelCode.length()});
+
+	// Create Program with Source in the created Context and Build the Program
+	cl::Program program(context, sources);
+	program.build({benchmarkingDevice});
 
 	// Create Buffer Objects
 	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(int) * 65536);
@@ -345,17 +449,114 @@ static void BM_OpenCLIntOPS(benchmark::State& state)
 		state.SetIterationTime(elapsed_seconds.count());
 	}
 
-	float output[65536];
+	int output[65536];
 	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(int) * 65536, output);
 	queue.finish();
 }
-//BENCHMARK(BM_OpenCLIntOPS)
+
+//BENCHMARK(BM_OpenCLIntOPS_RandomData)
+//->UseManualTime()
 //->MinTime(1.0);
 
-static void BM_OpenCLVOPS(benchmark::State& state)
+static void BM_OpenCLIntOPS_GeneratedData(benchmark::State& state)
 {
+	// Dynamic Data Input
+	int dataSize = state.range(0);
+
 	// Create Context on Device
 	cl::Context context({ benchmarkingDevice });
+
+	// Create Program source Object
+	cl::Program::Sources sources;
+
+	// Provide Kernel Code
+	std::string kernelCode =
+		R"CLC(
+			void kernel multInt(global const int* in, global int* out){
+				
+				int x = in[get_global_id(0)];
+				int y = (int)get_local_id(0);
+
+				y = y * x;
+
+				out[get_global_id(0)] = y;
+			}
+		)CLC";
+	sources.push_back({ kernelCode.c_str() , kernelCode.length() });
+
+	// Create Program with Source in the created Context and Build the Program
+	cl::Program program(context, sources);
+	program.build({ benchmarkingDevice });
+
+	// Create Buffer Objects
+	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(cl_int) * dataSize);
+	cl::Buffer buffer_out(context, CL_MEM_READ_WRITE, sizeof(cl_int) * dataSize);
+
+	// Create Command Queue
+	cl::CommandQueue queue(context, benchmarkingDevice);
+
+	// Generate Input Data
+	std::vector<cl_int> inputVector(dataSize, 0);
+	for (int i = 0; i < dataSize; i++)
+	{
+		inputVector[i] = static_cast<cl_int>(rand());
+	}
+	int* input = &inputVector[0];
+
+	// Copy Data from Host to Device
+	queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(cl_int) * dataSize, input);
+
+	size_t maxWorkGroupSize;
+	benchmarkingDevice.getInfo(CL_DEVICE_MAX_WORK_GROUP_SIZE, &maxWorkGroupSize);
+
+	cl::NDRange globalSize, localSize;
+	globalSize = dataSize;
+	localSize = maxWorkGroupSize;
+	//std::cout << "Data Size: " << dataSize << " maxWorkGroupSize: " << maxWorkGroupSize << "\n";
+
+	cl::make_kernel<cl::Buffer&, cl::Buffer&> multInt(cl::Kernel(program, "multInt"));
+	cl::EnqueueArgs eargs(queue, globalSize, localSize);
+
+	// Benchmark
+	while (state.KeepRunning())
+	{
+		auto start = std::chrono::high_resolution_clock::now();
+
+		multInt(eargs, buffer_in, buffer_out).wait();
+
+		auto end = std::chrono::high_resolution_clock::now();
+		auto elapsed_seconds =
+			std::chrono::duration_cast<std::chrono::duration<double>>(
+				end - start);
+		state.SetIterationTime(elapsed_seconds.count());
+	}
+
+	std::vector<cl_int> outputVector(dataSize, 0);
+	int* output = &outputVector[0];
+	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(cl_int) * dataSize, output);
+	queue.finish();
+
+	// The returned "Bytes" processed is realy the number of Integers Processed!
+	state.SetBytesProcessed(state.iterations()*dataSize);
+}
+
+//BENCHMARK(BM_OpenCLIntOPS_GeneratedData)
+//->UseManualTime()
+//->MinTime(1.0)
+//->Args({ 2048 })
+//->Args({ 8192 })
+//->Args({ 65536 })
+//->Args({ 524288 })
+//->Args({ 8388608 })
+//->Args({ 16777216 })
+//->Args({ 33554432 })
+//->Args({ 67108864 })
+//->Args({ 134217728 });
+
+static void BM_OpenCLVOPS_RandomData(benchmark::State& state)
+{
+	// Create Context on Device
+	cl::Context context({benchmarkingDevice});
 
 	// Create Program source Object
 	cl::Program::Sources sources;
@@ -373,11 +574,11 @@ static void BM_OpenCLVOPS(benchmark::State& state)
 				out[get_global_id(0)] = y;
 			}
 		)CLC";
-	sources.push_back({ kernelCode.c_str() , kernelCode.length() });
+	sources.push_back({kernelCode.c_str() , kernelCode.length()});
 
 	// Create Program with Source in the created Context and Build the Program
 	cl::Program program(context, sources);
-	program.build({ benchmarkingDevice });
+	program.build({benchmarkingDevice});
 
 	// Create Buffer Objects
 	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(cl_float2) * 65536);
@@ -390,7 +591,7 @@ static void BM_OpenCLVOPS(benchmark::State& state)
 	cl_float2 input[65536];
 	for (auto i = 0; i < 65536; i++)
 	{
-		input[i] = { randomFloats[i], randomFloats[i] };
+		input[i] = {randomFloats[i], randomFloats[i]};
 	}
 
 	// Copy Data from Host to Device
@@ -426,8 +627,208 @@ static void BM_OpenCLVOPS(benchmark::State& state)
 	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(cl_float2) * 65536, output);
 	queue.finish();
 }
-BENCHMARK(BM_OpenCLVOPS)
-->MinTime(1.0);
+
+//BENCHMARK(BM_OpenCLVOPS_RandomData)
+//->UseManualTime()
+//->MinTime(1.0);
+
+static void BM_OpenCLFloat2OPS_GeneratedData(benchmark::State& state)
+{
+	// Dynamic Data Input
+	int dataSize = state.range(0);
+
+	// Create Context on Device
+	cl::Context context({ benchmarkingDevice });
+
+	// Create Program source Object
+	cl::Program::Sources sources;
+
+	// Provide Kernel Code
+	std::string kernelCode =
+		R"CLC(
+			void kernel multFloat2(global const float2* in, global float2* out){
+				
+				float2 x = in[get_global_id(0)];
+				float2 y = { 1.01010101f, 1.01010101f };
+
+				y = y * x;
+
+				out[get_global_id(0)] = y;
+			}
+		)CLC";
+	sources.push_back({ kernelCode.c_str() , kernelCode.length() });
+
+	// Create Program with Source in the created Context and Build the Program
+	cl::Program program(context, sources);
+	program.build({ benchmarkingDevice });
+
+	// Create Buffer Objects
+	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(cl_float2) * dataSize);
+	cl::Buffer buffer_out(context, CL_MEM_READ_WRITE, sizeof(cl_float2) * dataSize);
+
+	// Create Command Queue
+	cl::CommandQueue queue(context, benchmarkingDevice);
+
+	// Generate Input Data
+	std::vector<cl_float2> inputVector(dataSize, { 0, 0 });
+	for (int i = 0; i < dataSize; i++)
+	{
+		inputVector[i] = { static_cast<cl_float>(rand()) * 1.010101f, static_cast<cl_float>(rand()) * 1.010101f };
+	}
+	cl_float2* input = &inputVector[0];
+
+	// Copy Data from Host to Device
+	queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(cl_float2) * dataSize, input);
+
+	size_t maxWorkGroupSize;
+	benchmarkingDevice.getInfo(CL_DEVICE_MAX_WORK_GROUP_SIZE, &maxWorkGroupSize);
+
+	cl::NDRange globalSize, localSize;
+	globalSize = dataSize;
+	localSize = maxWorkGroupSize;
+	//std::cout << "Data Size: " << dataSize << " maxWorkGroupSize: " << maxWorkGroupSize << "\n";
+
+	cl::make_kernel<cl::Buffer&, cl::Buffer&> multFloat2(cl::Kernel(program, "multFloat2"));
+	cl::EnqueueArgs eargs(queue, globalSize, localSize);
+
+	// Benchmark
+	while (state.KeepRunning())
+	{
+		auto start = std::chrono::high_resolution_clock::now();
+
+		multFloat2(eargs, buffer_in, buffer_out).wait();
+
+		auto end = std::chrono::high_resolution_clock::now();
+		auto elapsed_seconds =
+			std::chrono::duration_cast<std::chrono::duration<double>>(
+				end - start);
+		state.SetIterationTime(elapsed_seconds.count());
+	}
+
+	std::vector<cl_float2> outputVector(dataSize, { 0, 0 });
+	cl_float2* output = &outputVector[0];
+	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(cl_float2) * dataSize, output);
+	queue.finish();
+
+	// The returned "Bytes" processed is realy the number of Float2 Processed!
+	state.SetBytesProcessed(state.iterations()*dataSize);
+}
+
+//BENCHMARK(BM_OpenCLFloat2OPS_GeneratedData)
+//->UseManualTime()
+//->MinTime(1.0)
+//->Args({ 2048 })
+//->Args({ 8192 })
+//->Args({ 65536 })
+//->Args({ 524288 })
+//->Args({ 8388608 })
+//->Args({ 16777216 })
+//->Args({ 33554432 })
+//->Args({ 67108864 })
+//->Args({ 134217728 });
+
+static void BM_OpenCLFloat16OPS_GeneratedData(benchmark::State& state)
+{
+	// Dynamic Data Input
+	int dataSize = state.range(0);
+
+	// Create Context on Device
+	cl::Context context({ benchmarkingDevice });
+
+	// Create Program source Object
+	cl::Program::Sources sources;
+
+	// Provide Kernel Code
+	std::string kernelCode =
+		R"CLC(
+			void kernel multFloat16(global const float16* in, global float16* out){
+				
+				float16 x = in[get_global_id(0)];
+				float16 y = { 1.01010101f, 1.01010101f, 1.01010101f, 1.01010101f,
+							 1.01010101f, 1.01010101f, 1.01010101f, 1.01010101f,
+							 1.01010101f, 1.01010101f, 1.01010101f, 1.01010101f,
+							 1.01010101f, 1.01010101f, 1.01010101f, 1.01010101f };
+
+				y = y * x;
+
+				out[get_global_id(0)] = y;
+			}
+		)CLC";
+	sources.push_back({ kernelCode.c_str() , kernelCode.length() });
+
+	// Create Program with Source in the created Context and Build the Program
+	cl::Program program(context, sources);
+	program.build({ benchmarkingDevice });
+
+	// Create Buffer Objects
+	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(cl_float16) * dataSize);
+	cl::Buffer buffer_out(context, CL_MEM_READ_WRITE, sizeof(cl_float16) * dataSize);
+
+	// Create Command Queue
+	cl::CommandQueue queue(context, benchmarkingDevice);
+
+	// Generate Input Data
+	std::vector<cl_float16> inputVector(dataSize, { 0, 0 });
+	for (int i = 0; i < dataSize; i++)
+	{
+		inputVector[i] = { 
+			static_cast<cl_float>(rand()) * 1.010101f, static_cast<cl_float>(rand()) * 1.010101f,
+			static_cast<cl_float>(rand()) * 1.010101f, static_cast<cl_float>(rand()) * 1.010101f,
+			static_cast<cl_float>(rand()) * 1.010101f, static_cast<cl_float>(rand()) * 1.010101f,
+			static_cast<cl_float>(rand()) * 1.010101f, static_cast<cl_float>(rand()) * 1.010101f, 
+			static_cast<cl_float>(rand()) * 1.010101f, static_cast<cl_float>(rand()) * 1.010101f, 
+			static_cast<cl_float>(rand()) * 1.010101f, static_cast<cl_float>(rand()) * 1.010101f, 
+			static_cast<cl_float>(rand()) * 1.010101f, static_cast<cl_float>(rand()) * 1.010101f, 
+			static_cast<cl_float>(rand()) * 1.010101f, static_cast<cl_float>(rand()) * 1.010101f 
+		};
+	}
+	cl_float16* input = &inputVector[0];
+
+	// Copy Data from Host to Device
+	queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(cl_float16) * dataSize, input);
+
+	size_t maxWorkGroupSize;
+	benchmarkingDevice.getInfo(CL_DEVICE_MAX_WORK_GROUP_SIZE, &maxWorkGroupSize);
+
+	cl::NDRange globalSize, localSize;
+	globalSize = dataSize;
+	localSize = maxWorkGroupSize;
+	//std::cout << "Data Size: " << dataSize << " maxWorkGroupSize: " << maxWorkGroupSize << "\n";
+
+	cl::make_kernel<cl::Buffer&, cl::Buffer&> multFloat16(cl::Kernel(program, "multFloat16"));
+	cl::EnqueueArgs eargs(queue, globalSize, localSize);
+
+	// Benchmark
+	while (state.KeepRunning())
+	{
+		auto start = std::chrono::high_resolution_clock::now();
+
+		multFloat16(eargs, buffer_in, buffer_out).wait();
+
+		auto end = std::chrono::high_resolution_clock::now();
+		auto elapsed_seconds =
+			std::chrono::duration_cast<std::chrono::duration<double>>(
+				end - start);
+		state.SetIterationTime(elapsed_seconds.count());
+	}
+
+	std::vector<cl_float16> outputVector(dataSize, { 0, 0 });
+	cl_float16* output = &outputVector[0];
+	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(cl_float16) * dataSize, output);
+	queue.finish();
+
+	// The returned "Bytes" processed is realy the number of Float16 Processed!
+	state.SetBytesProcessed(state.iterations()*dataSize);
+}
+
+BENCHMARK(BM_OpenCLFloat16OPS_GeneratedData)
+->UseManualTime()
+->MinTime(1.0)
+->Args({ 2048 })
+->Args({ 8192 })
+->Args({ 65536 })
+->Args({ 524288 })
+->Args({ 8388608 });
 
 static void BM_OpenCLBandwidthHostToDevice(benchmark::State& state)
 {
@@ -571,7 +972,7 @@ static void BM_OpenCLKernelCreation(benchmark::State& state)
 	int kernels = state.range(0);
 	int data = state.range(1);
 	int dataPerKernel = static_cast<int>(data / kernels);
-	std::cout << "Kernels: " << kernels << ", data: " << data << ", dataPerKernel: " << dataPerKernel << "\n";
+	//std::cout << "Kernels: " << kernels << ", data: " << data << ", dataPerKernel: " << dataPerKernel << "\n";
 
 	// Create Context on Device
 	cl::Context context({benchmarkingDevice});
@@ -618,7 +1019,7 @@ static void BM_OpenCLKernelCreation(benchmark::State& state)
 
 	cl::NDRange globalSize, localSize;
 	globalSize = kernels;
-	localSize = maxWorkGroupSize>kernels ? kernels : maxWorkGroupSize;
+	localSize = maxWorkGroupSize > kernels ? kernels : maxWorkGroupSize;
 
 	// Create Kernel
 	cl::make_kernel<int, cl::Buffer&, cl::Buffer&> gridStrideKernel(cl::Kernel(program, "gridStrideKernel"));
@@ -695,33 +1096,6 @@ static void BM_OpenCLKernelCreation(benchmark::State& state)
 ->Args({ 4, 134217728 })
 ->Args({ 2, 134217728 })
 ->Args({ 1, 134217728 })*/
-
-
-float dummyOut_BM_CPUFLOPs;
-static void BM_CPUFLOPs(benchmark::State& state)
-{
-	float x = 1.01010101f;
-	while (state.KeepRunning())
-	{
-		for (auto i = 0; i < 1000000; i++)
-		{
-			x *= 1.01010101f;
-		}
-	}
-}
-
-//BENCHMARK(BM_CPUFLOPs)
-//	->Unit(benchmark::kNanosecond)
-//	->MinTime(1.0);
-
-static void BM_OpenCLContextCreation(benchmark::State& state)
-{
-	while (state.KeepRunning())
-	{
-	}
-	state.SetLabel("fefe");
-}
-
 
 int autoSelectDevice = 0;
 
