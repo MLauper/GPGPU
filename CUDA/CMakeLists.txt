@@ -56,7 +56,7 @@ if (USE_GTEST)
 endif()
 
 if(USE_CUDA_BENCHMARK)
-	add_executable(
+	cuda_add_executable(
 		cuda_benchmark
 		cuda_benchmark.cu
 		cuda_benchmark.h

@@ -4,7 +4,7 @@ if (NOT OpenCL_FOUND)
 	message( FATAL_ERROR "OpenCL not found. Please install OpenCL or disable OpenCL in this project." )
 endif ()
 if (NOT OpenCL_VERSION_MAJOR EQUAL 2)
-	message( WARNING "OpenCL is not in version 2. This is not a tested scenario." )
+	message( "OpenCL is not in version 2." )
 endif()
 
 include_directories ("${OpenCL_INCLUDE_DIRS}")
