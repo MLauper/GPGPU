@@ -54,3 +54,25 @@ if (USE_GTEST)
 	
 	add_test(NAME cuda_helpers COMMAND cuda_helpers_unittest)
 endif()
+
+if(USE_CUDA_BENCHMARK)
+	add_executable(
+		cuda_benchmark
+		cuda_benchmark.cu
+		cuda_benchmark.h
+	)
+
+	add_dependencies(
+		cuda_benchmark
+		cuda_helpers
+		benchmark
+	)
+
+	target_link_libraries(
+		cuda_benchmark
+		cuda_helpers
+		benchmark
+		${CUDA_LIBRARIES}
+	)
+	
+endif()

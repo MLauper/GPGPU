@@ -8,25 +8,11 @@
 /*! \file opencl_benchmark.h
 *	\brief Provides benchmarks to measure OpenCL performance.
 *
-*	This header file provides all function for the namespace opencl_benchmark.
-*	Under opencl_benchmark, there are several functions that are used to
-*	measure the performance of OpenCL.
+*	This header file is a dummy for opencl_benchmarks.cc which
+*	contains all benchmarks for OpenCL.
 */
 
 extern float randomFloats[];
 extern int randomIntegers[];
-
-/*! \brief Contains benchmarks for OpenCL
- *
- * This namepsace contains all demonstrations for OpenCL demonstratoins.
- * The subsidiary namespaces are organized based on the purpose of the 
- * demonstration
- */
-namespace opencl_benchmark
-{
-	void bench();
-
-}
-
 
 #endif // GPGPU_OPENCL_OPENCL_BENCHMARK_
