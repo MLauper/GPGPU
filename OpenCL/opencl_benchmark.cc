@@ -10,7 +10,7 @@ static void BM_OpenCLBasicLatencyTest(benchmark::State& state)
 	while (state.KeepRunning())
 	{
 		// Create Context on Device
-		cl::Context context({benchmarkingDevice});
+		cl::Context context(benchmarkingDevice);
 
 		// Create Program source Object
 		cl::Program::Sources sources;
@@ -166,7 +166,7 @@ static void BM_OpenCLDivergedExecution(benchmark::State& state)
 	int dataSize = state.range(0);
 
 	// Create Context on Device
-	cl::Context context({benchmarkingDevice});
+	cl::Context context(benchmarkingDevice);
 
 	// Create Program source Object
 	cl::Program::Sources sources;
@@ -262,7 +262,7 @@ BENCHMARK(BM_OpenCLDivergedExecution)
 static void BM_OpenCLFLOPS_RandomData(benchmark::State& state)
 {
 	// Create Context on Device
-	cl::Context context({benchmarkingDevice});
+	cl::Context context(benchmarkingDevice);
 
 	// Create Program source Object
 	cl::Program::Sources sources;
@@ -426,7 +426,7 @@ BENCHMARK(BM_OpenCLFLOPS_GeneratedData)
 static void BM_OpenCLIntOPS_RandomData(benchmark::State& state)
 {
 	// Create Context on Device
-	cl::Context context({benchmarkingDevice});
+	cl::Context context(benchmarkingDevice);
 
 	// Create Program source Object
 	cl::Program::Sources sources;
@@ -591,7 +591,7 @@ BENCHMARK(BM_OpenCLIntOPS_GeneratedData)
 static void BM_OpenCLVOPS_RandomData(benchmark::State& state)
 {
 	// Create Context on Device
-	cl::Context context({benchmarkingDevice});
+	cl::Context context(benchmarkingDevice);
 
 	// Create Program source Object
 	cl::Program::Sources sources;
@@ -871,7 +871,7 @@ static void BM_OpenCLBandwidthHostToDevice(benchmark::State& state)
 	int chunkSize = state.range(0);
 
 	// Create Context on Device
-	cl::Context context({benchmarkingDevice});
+	cl::Context context(benchmarkingDevice);
 
 	// Create Buffer Object
 	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(int) * chunkSize);
@@ -914,7 +914,7 @@ static void BM_OpenCLBandwidthDeviceToDevice(benchmark::State& state)
 	int chunkSize = state.range(0);
 
 	// Create Context on Device
-	cl::Context context({benchmarkingDevice});
+	cl::Context context(benchmarkingDevice);
 
 	// Create Buffer Object
 	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(int) * chunkSize);
@@ -962,7 +962,7 @@ static void BM_OpenCLBandwidthDeviceToHost(benchmark::State& state)
 	int chunkSize = state.range(0);
 
 	// Create Context on Device
-	cl::Context context({benchmarkingDevice});
+	cl::Context context(benchmarkingDevice);
 
 	// Create Buffer Object
 	cl::Buffer buffer_inout(context, CL_MEM_READ_WRITE, sizeof(int) * chunkSize);
@@ -1010,7 +1010,7 @@ static void BM_OpenCLKernelCreation(benchmark::State& state)
 	//std::cout << "Kernels: " << kernels << ", data: " << data << ", dataPerKernel: " << dataPerKernel << "\n";
 
 	// Create Context on Device
-	cl::Context context({benchmarkingDevice});
+	cl::Context context(benchmarkingDevice);
 
 	// Create Program source Object
 	cl::Program::Sources sources;
