@@ -93,4 +93,11 @@ if(USE_OPENCL_BENCHMARK)
 		${OpenCL_LIBRARIES}
 	)
 	
+	target_compile_features(
+		opencl_benchmark
+		PRIVATE
+		cxx_raw_string_literals
+		cxx_auto_type
+	)
+	
 endif()
