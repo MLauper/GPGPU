@@ -20,6 +20,11 @@ target_link_libraries(
 	opencl_helpers
 	${OpenCL_LIBRARIES}
 )
+target_compile_features(
+	opencl_helpers
+	PRIVATE
+	cxx_auto_type
+)
 
 # opnecl_demo
 add_executable(
