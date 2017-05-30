@@ -67,7 +67,7 @@ static void BM_OpenCLConvergedExecution(benchmark::State& state)
 	int dataSize = state.range(0);
 
 	// Create Context on Device
-	cl::Context context({ benchmarkingDevice });
+	cl::Context context(benchmarkingDevice);
 
 	// Create Program source Object
 	cl::Program::Sources sources;
@@ -334,7 +334,7 @@ static void BM_OpenCLFLOPS_GeneratedData(benchmark::State& state)
 	int dataSize = state.range(0);
 
 	// Create Context on Device
-	cl::Context context({ benchmarkingDevice });
+	cl::Context context(benchmarkingDevice);
 
 	// Create Program source Object
 	cl::Program::Sources sources;
@@ -499,7 +499,7 @@ static void BM_OpenCLIntOPS_GeneratedData(benchmark::State& state)
 	int dataSize = state.range(0);
 
 	// Create Context on Device
-	cl::Context context({ benchmarkingDevice });
+	cl::Context context(benchmarkingDevice);
 
 	// Create Program source Object
 	cl::Program::Sources sources;
@@ -673,7 +673,7 @@ static void BM_OpenCLFloat2OPS_GeneratedData(benchmark::State& state)
 	int dataSize = state.range(0);
 
 	// Create Context on Device
-	cl::Context context({ benchmarkingDevice });
+	cl::Context context(benchmarkingDevice);
 
 	// Create Program source Object
 	cl::Program::Sources sources;
@@ -768,7 +768,7 @@ static void BM_OpenCLFloat16OPS_GeneratedData(benchmark::State& state)
 	int dataSize = state.range(0);
 
 	// Create Context on Device
-	cl::Context context({ benchmarkingDevice });
+	cl::Context context(benchmarkingDevice);
 
 	// Create Program source Object
 	cl::Program::Sources sources;
