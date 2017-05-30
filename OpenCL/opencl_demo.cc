@@ -124,7 +124,7 @@ void opencl_demo::memory::demonstrateMemBuffer()
 	cl::Device device = devices[0];
 	
 	// Create Context on Device
-	cl::Context context({ device });
+	cl::Context context( device );
 
 	// Create Program source Object
 	cl::Program::Sources sources;
