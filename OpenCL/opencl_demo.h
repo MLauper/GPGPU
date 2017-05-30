@@ -1,6 +1,5 @@
 #ifndef GPGPU_OPENCL_OPENCL_DEMO_
 #define GPGPU_OPENCL_OPENCL_DEMO_
-#include <CL/cl.h>
 #include <string>
 #include "opencl_helpers.h"
 

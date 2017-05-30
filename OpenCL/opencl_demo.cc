@@ -1,5 +1,4 @@
 #include "opencl_demo.h"
-#include "opencl_helpers.h"
 #include <iostream>
 
 int main(int argc, char** argv)
