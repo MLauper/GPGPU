@@ -287,7 +287,7 @@ static void BM_OpenCLFLOPS(benchmark::State& state)
 static void BM_OpenCLIntOPS(benchmark::State& state)
 {
 	// Create Context on Device
-	cl::Context context({benchmarkingDevice});
+	cl::Context context({ benchmarkingDevice });
 
 	// Create Program source Object
 	cl::Program::Sources sources;
@@ -305,11 +305,11 @@ static void BM_OpenCLIntOPS(benchmark::State& state)
 				out[get_global_id(0)] = y;
 			}
 		)CLC";
-	sources.push_back({kernelCode.c_str() , kernelCode.length()});
+	sources.push_back({ kernelCode.c_str() , kernelCode.length() });
 
 	// Create Program with Source in the created Context and Build the Program
 	cl::Program program(context, sources);
-	program.build({benchmarkingDevice});
+	program.build({ benchmarkingDevice });
 
 	// Create Buffer Objects
 	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(int) * 65536);
@@ -349,9 +349,85 @@ static void BM_OpenCLIntOPS(benchmark::State& state)
 	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(int) * 65536, output);
 	queue.finish();
 }
-
 //BENCHMARK(BM_OpenCLIntOPS)
 //->MinTime(1.0);
+
+static void BM_OpenCLVOPS(benchmark::State& state)
+{
+	// Create Context on Device
+	cl::Context context({ benchmarkingDevice });
+
+	// Create Program source Object
+	cl::Program::Sources sources;
+
+	// Provide Kernel Code
+	std::string kernelCode =
+		R"CLC(
+			void kernel multFloat2(global const float2* in, global float2* out){
+				
+				float2 x = in[get_global_id(0)];
+				float2 y = { 1.01010101f, 1.01010101f };
+
+				y = y * x;
+
+				out[get_global_id(0)] = y;
+			}
+		)CLC";
+	sources.push_back({ kernelCode.c_str() , kernelCode.length() });
+
+	// Create Program with Source in the created Context and Build the Program
+	cl::Program program(context, sources);
+	program.build({ benchmarkingDevice });
+
+	// Create Buffer Objects
+	cl::Buffer buffer_in(context, CL_MEM_READ_WRITE, sizeof(cl_float2) * 65536);
+	cl::Buffer buffer_out(context, CL_MEM_READ_WRITE, sizeof(cl_float2) * 65536);
+
+	// Create Command Queue
+	cl::CommandQueue queue(context, benchmarkingDevice);
+
+	// Create Input Data as 2D Vector
+	cl_float2 input[65536];
+	for (auto i = 0; i < 65536; i++)
+	{
+		input[i] = { randomFloats[i], randomFloats[i] };
+	}
+
+	// Copy Data from Host to Device
+	queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(cl_float2) * 65536, input);
+
+	// Define execution parameters
+	size_t maxWorkGroupSize;
+	benchmarkingDevice.getInfo(CL_DEVICE_MAX_WORK_GROUP_SIZE, &maxWorkGroupSize);
+
+	cl::NDRange globalSize, localSize;
+	globalSize = 65536;
+	localSize = maxWorkGroupSize;
+
+	// Create Kernel
+	cl::make_kernel<cl::Buffer&, cl::Buffer&> multFloat2(cl::Kernel(program, "multFloat2"));
+	cl::EnqueueArgs eargs(queue, globalSize, localSize);
+
+	// Benchmark
+	while (state.KeepRunning())
+	{
+		auto start = std::chrono::high_resolution_clock::now();
+
+		multFloat2(eargs, buffer_in, buffer_out).wait();
+
+		auto end = std::chrono::high_resolution_clock::now();
+		auto elapsed_seconds =
+			std::chrono::duration_cast<std::chrono::duration<double>>(
+				end - start);
+		state.SetIterationTime(elapsed_seconds.count());
+	}
+
+	float output[65536];
+	queue.enqueueReadBuffer(buffer_out, CL_TRUE, 0, sizeof(cl_float2) * 65536, output);
+	queue.finish();
+}
+BENCHMARK(BM_OpenCLVOPS)
+->MinTime(1.0);
 
 static void BM_OpenCLBandwidthHostToDevice(benchmark::State& state)
 {
@@ -571,43 +647,43 @@ static void BM_OpenCLKernelCreation(benchmark::State& state)
 	std::cout << "\n";
 }
 
-BENCHMARK(BM_OpenCLKernelCreation)
-->MinTime(1.0)
-->Args({ 1, 1 })
-->Args({ 1, 10 })
-->Args({ 8, 8 })
-->Args({ 8, 80 })
-->Args({16, 16})
-->Args({16, 160})
-->Args({512, 512})
-->Args({512, 5120})
-->Args({ 1024, 1024 })
-->Args({ 1024, 10240 })
-->Args({ 16384, 16384 })
-->Args({ 16384, 163840 })
-->Args({ 131072, 131072 })
-->Args({ 131072, 1310720 })
-->Args({ 1048576, 1048576 })
-->Args({ 1048576, 10485760 })
-->Args({ 1048576, 104857600 })
-->Args({ 134217728, 134217728 })
-->Args({ 67108864, 134217728 })
-->Args({ 33554432, 134217728 })
-->Args({ 16777216, 134217728 })
-->Args({ 8388608, 134217728 })
-->Args({ 4194304, 134217728 })
-->Args({ 2097152, 134217728 })
-->Args({ 1048576, 134217728 })
-->Args({ 524288, 134217728 })
-->Args({ 262144, 134217728 })
-->Args({ 131072, 134217728 })
-->Args({ 65536, 134217728 })
-->Args({ 32768, 134217728 })
-->Args({ 16384, 134217728 })
-->Args({ 8192, 134217728 })
-->Args({ 4096, 134217728 })
-->Args({ 2048, 134217728 })
-->Args({ 1024, 134217728 });
+//BENCHMARK(BM_OpenCLKernelCreation)
+//->MinTime(1.0)
+//->Args({ 1, 1 })
+//->Args({ 1, 10 })
+//->Args({ 8, 8 })
+//->Args({ 8, 80 })
+//->Args({16, 16})
+//->Args({16, 160})
+//->Args({512, 512})
+//->Args({512, 5120})
+//->Args({ 1024, 1024 })
+//->Args({ 1024, 10240 })
+//->Args({ 16384, 16384 })
+//->Args({ 16384, 163840 })
+//->Args({ 131072, 131072 })
+//->Args({ 131072, 1310720 })
+//->Args({ 1048576, 1048576 })
+//->Args({ 1048576, 10485760 })
+//->Args({ 1048576, 104857600 })
+//->Args({ 134217728, 134217728 })
+//->Args({ 67108864, 134217728 })
+//->Args({ 33554432, 134217728 })
+//->Args({ 16777216, 134217728 })
+//->Args({ 8388608, 134217728 })
+//->Args({ 4194304, 134217728 })
+//->Args({ 2097152, 134217728 })
+//->Args({ 1048576, 134217728 })
+//->Args({ 524288, 134217728 })
+//->Args({ 262144, 134217728 })
+//->Args({ 131072, 134217728 })
+//->Args({ 65536, 134217728 })
+//->Args({ 32768, 134217728 })
+//->Args({ 16384, 134217728 })
+//->Args({ 8192, 134217728 })
+//->Args({ 4096, 134217728 })
+//->Args({ 2048, 134217728 })
+//->Args({ 1024, 134217728 });
 /* The following Kernels overloaded my GPU and caused a crash of the system
 ->Args({ 512, 134217728 })
 ->Args({ 256, 134217728 })
