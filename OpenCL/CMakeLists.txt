@@ -37,6 +37,12 @@ target_link_libraries (
 	opencl_helpers
 	${OpenCL_LIBRARIES}
 )
+target_compile_features(
+	opencl_demo
+	PRIVATE
+	cxx_raw_string_literals
+	cxx_auto_type
+)
 
 if (USE_GTEST)
 	add_executable(
