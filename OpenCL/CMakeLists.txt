@@ -63,6 +63,12 @@ if (USE_GTEST)
 		${OpenCL_LIBRARIES}
 	)
 	
+	target_compile_features(
+		opencl_helpers_unittest
+		PRIVATE
+		cxx_auto_type
+	)
+	
 	add_test(NAME opencl_helpers COMMAND opencl_helpers_unittest)
 endif()
 
