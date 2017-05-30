@@ -30,7 +30,6 @@ namespace opencl_helpers
 	 */
 	struct opencl_error;
 
-	enum class opencl_device_type : uint64_t ;
 	class Platform;
 	class Device;
 
@@ -62,20 +61,9 @@ namespace opencl_helpers
 	{
 	public:
 		explicit Device(cl_device_id device_id);
-		opencl_device_type device_type;
 		cl_device_id getId();
 	private:
 		cl_device_id device_id_;
-	};
-
-	enum class opencl_device_type : uint64_t
-	{
-		CPU = CL_DEVICE_TYPE_CPU,
-		GPU = CL_DEVICE_TYPE_GPU,
-		ACCELERATOR = CL_DEVICE_TYPE_ACCELERATOR,
-		CUSTOM = CL_DEVICE_TYPE_CUSTOM,
-		DEFAULT = CL_DEVICE_TYPE_DEFAULT,
-		ALL = CL_DEVICE_TYPE_ALL
 	};
 
 	// Platform
