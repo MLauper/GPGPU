@@ -130,16 +130,15 @@ static void BM_CUDAConvergedExecution(benchmark::State& state)
 	state.SetBytesProcessed(state.iterations() * dataSize);
 }
 
-//BENCHMARK(BM_CUDAConvergedExecution)
-//->MinTime(1.0)
-//->UseManualTime()
-//->Args({ 2048 })
-//->Args({ 8192 })
-//->Args({ 65536 })
-//->Args({ 524288 })
-//->Args({ 8388608 })
-//->Args({ 16777216 })
-//->Args({ 67108864 });
+BENCHMARK(BM_CUDAConvergedExecution)
+->MinTime(1.0)
+->UseManualTime()
+->Args({ 2048 })
+->Args({ 8192 })
+->Args({ 65536 })
+->Args({ 524288 })
+->Args({ 8388608 })
+->Args({ 16777216 });
 
 __global__ void BM_divergedKernel(float* d_in, float* d_out)
 {
@@ -224,15 +223,125 @@ static void BM_CUDADivergedExecution(benchmark::State& state)
 	state.SetBytesProcessed(state.iterations() * dataSize);
 }
 
-//BENCHMARK(BM_CUDADivergedExecution)
-//->MinTime(1.0)
-//->UseManualTime()
-//->Args({ 2048 })
-//->Args({ 8192 })
-//->Args({ 65536 })
-//->Args({ 524288 })
-//->Args({ 8388608 })
-//->Args({ 16777216 });
+BENCHMARK(BM_CUDADivergedExecution)
+->MinTime(1.0)
+->UseManualTime()
+->Args({2048})
+->Args({8192})
+->Args({65536})
+->Args({524288})
+->Args({8388608})
+->Args({16777216});
+
+__global__ void BM_multiDivergedKernel(float* d_in, float* d_out)
+{
+	int globalId = blockIdx.x * blockDim.x + threadIdx.x;
+
+	float x = float(d_in[globalId]);
+	float y = float(threadIdx.x);
+
+	int threadId = threadIdx.x;
+
+	switch (threadId)
+	{
+	case 1: y = 32;
+		break;
+	case 2: y = 33;
+		break;
+	case 3: y = 34;
+		break;
+	case 4: y = 35;
+		break;
+	case 5: y = 36;
+		break;
+	case 6: y = 37;
+		break;
+	case 7: y = 38;
+		break;
+	case 8: y = 39;
+		break;
+	case 9: y = 40;
+		break;
+	case 10: y = 41;
+		break;
+	default: y = 42;
+		break;
+	}
+
+	y = y * x;
+
+	d_out[globalId] = y;
+}
+
+static void BM_CUDAMultiDivergedExecution(benchmark::State& state)
+{
+	// Dynamic Data Input
+	int dataSize = state.range(0);
+
+	// Set CUDA deivce
+	cudaSetDevice(benchmarkingDevice);
+
+	// Get max threads per block
+	cudaDeviceProp prop;
+	cudaGetDeviceProperties(&prop, benchmarkingDevice);
+	int threadsPerBlock = prop.maxThreadsPerBlock;
+
+	// Calculate Grid size
+	int gridSize = int(dataSize / threadsPerBlock);
+
+	// Generate input data
+	std::vector<float> inputVector(dataSize, 0);
+	for (int i = 0; i < dataSize; i++)
+	{
+		inputVector[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+	}
+	float* h_input = &inputVector[0];
+
+	// Allocate memory on device
+	float *d_input, *d_output;
+	cudaMalloc(&d_input, dataSize * sizeof(float));
+	cudaMalloc(&d_output, dataSize * sizeof(float));
+
+	// Copy data to device
+	cudaMemcpy(d_input, h_input, dataSize * sizeof(float), cudaMemcpyHostToDevice);
+
+	while (state.KeepRunning())
+	{
+		auto start = std::chrono::high_resolution_clock::now();
+
+		BM_divergedKernel << <gridSize, threadsPerBlock >> >(d_input, d_output);
+
+		auto end = std::chrono::high_resolution_clock::now();
+		auto elapsed_seconds =
+			std::chrono::duration_cast<std::chrono::duration<double>>(
+				end - start);
+		state.SetIterationTime(elapsed_seconds.count());
+	}
+
+
+	// Copy Data from Host to Device
+	std::vector<float> outputVector(dataSize, 0);
+	float* h_output = &outputVector[0];
+	cudaMemcpy(h_output, d_output, dataSize * sizeof(float), cudaMemcpyDeviceToHost);
+
+	// Free memory and reset device
+	cudaFree(d_input);
+	cudaFree(d_output);
+	cudaDeviceReset();
+
+	// Calculate Elements processed
+	state.SetBytesProcessed(state.iterations() * dataSize);
+}
+
+BENCHMARK(BM_CUDAMultiDivergedExecution)
+->MinTime(1.0)
+->UseManualTime()
+->Args({2048})
+->Args({8192})
+->Args({65536})
+->Args({524288})
+->Args({8388608})
+->Args({16777216});
 
 __global__ void BM_multFloat(float* d_in, float* d_out)
 {
@@ -405,7 +514,7 @@ __global__ void BM_multFloat2(float2* d_in, float2* d_out)
 	int globalId = blockIdx.x * blockDim.x + threadIdx.x;
 
 	float2 x = d_in[globalId];
-	float2 y = { 1.01010101f, 1.01010101f };
+	float2 y = {1.01010101f, 1.01010101f};
 
 	y.x = y.x * x.x;
 	y.y = y.y * x.y;
@@ -430,10 +539,10 @@ static void BM_CUDAFloat2OPS_GeneratedData(benchmark::State& state)
 	int gridSize = int(dataSize / threadsPerBlock);
 
 	// Generate input data
-	std::vector<float2> inputVector(dataSize, { 0, 0 });
+	std::vector<float2> inputVector(dataSize, {0, 0});
 	for (int i = 0; i < dataSize; i++)
 	{
-		inputVector[i] = { static_cast<float>(rand()) * 1.010101f, static_cast<float>(rand()) * 1.010101f };
+		inputVector[i] = {static_cast<float>(rand()) * 1.010101f, static_cast<float>(rand()) * 1.010101f};
 	}
 	float2* h_input = &inputVector[0];
 
@@ -460,7 +569,7 @@ static void BM_CUDAFloat2OPS_GeneratedData(benchmark::State& state)
 
 
 	// Copy Data from Host to Device
-	std::vector<float2> outputVector(dataSize, { 0,0 });
+	std::vector<float2> outputVector(dataSize, {0,0});
 	float2* h_output = &outputVector[0];
 	cudaMemcpy(h_output, d_output, dataSize * sizeof(float2), cudaMemcpyDeviceToHost);
 
@@ -502,7 +611,7 @@ static void BM_CUDABandwidthHostToDevice(benchmark::State& state)
 	int* h_input = &inputVector[0];
 
 	// Allocate memory on device
-	int *d_input;
+	int* d_input;
 	cudaMalloc(&d_input, dataSize * sizeof(int));
 
 	while (state.KeepRunning())
@@ -561,7 +670,7 @@ static void BM_CUDABandwidthDeviceToHost(benchmark::State& state)
 	int* h_inout = &inoutVector[0];
 
 	// Allocate memory on device
-	int *d_device;
+	int* d_device;
 	cudaMalloc(&d_device, dataSize * sizeof(int));
 
 	// Copy Data from Host to Device
@@ -672,7 +781,8 @@ __global__ void BM_gridStrideKernel(const int n, const int* d_in, int* d_out)
 {
 	int id = blockIdx.x * blockDim.x + threadIdx.x;
 
-	for (int i = id; i < n; i += blockDim.x * gridDim.x) {
+	for (int i = id; i < n; i += blockDim.x * gridDim.x)
+	{
 		d_out[i] = d_in[i] * id;
 	}
 }
@@ -780,7 +890,8 @@ __global__ void BM_badGridStrideKernel(const int objectsPerKernel, const int* d_
 
 	int startElement = id * objectsPerKernel;
 
-	for (int i = startElement; i < (startElement + objectsPerKernel); i++) {
+	for (int i = startElement; i < (startElement + objectsPerKernel); i++)
+	{
 		d_out[i] = d_in[i] * id;
 	}
 }
@@ -847,26 +958,27 @@ static void BM_CUDABadMemoryCoalescence(benchmark::State& state)
 BENCHMARK(BM_CUDABadMemoryCoalescence)
 ->UseManualTime()
 ->MinTime(1.0)
-->Args({ 512, 4096 })
-->Args({ 4096, 4096 })
-->Args({ 1024, 8192 })
-->Args({ 8192, 8192 })
-->Args({ 16384, 131072 })
-->Args({ 131072, 131072 })
-->Args({ 16384, 131072 })
-->Args({ 131072, 131072 })
-->Args({ 131072, 1048576 })
-->Args({ 1048576, 1048576 })
-->Args({ 131072, 1048576 })
-->Args({ 1048576, 1048576 })
-->Args({ 1048576, 8388608 })
-->Args({ 8388608, 8388608 });
+->Args({512, 4096})
+->Args({4096, 4096})
+->Args({1024, 8192})
+->Args({8192, 8192})
+->Args({16384, 131072})
+->Args({131072, 131072})
+->Args({16384, 131072})
+->Args({131072, 131072})
+->Args({131072, 1048576})
+->Args({1048576, 1048576})
+->Args({131072, 1048576})
+->Args({1048576, 1048576})
+->Args({1048576, 8388608})
+->Args({8388608, 8388608});
 
 __global__ void BM_goodGridStrideKernel(const int n, const int* d_in, int* d_out)
 {
 	int id = blockIdx.x * blockDim.x + threadIdx.x;
 
-	for (int i = id; i < n; i += blockDim.x * gridDim.x) {
+	for (int i = id; i < n; i += blockDim.x * gridDim.x)
+	{
 		d_out[i] = d_in[i] * id;
 	}
 }
@@ -933,20 +1045,20 @@ static void BM_CUDAGoodMemoryCoalescence(benchmark::State& state)
 BENCHMARK(BM_CUDAGoodMemoryCoalescence)
 ->UseManualTime()
 ->MinTime(1.0)
-->Args({ 512, 4096 })
-->Args({ 4096, 4096 })
-->Args({ 1024, 8192 })
-->Args({ 8192, 8192 })
-->Args({ 16384, 131072 })
-->Args({ 131072, 131072 })
-->Args({ 16384, 131072 })
-->Args({ 131072, 131072 })
-->Args({ 131072, 1048576 })
-->Args({ 1048576, 1048576 })
-->Args({ 131072, 1048576 })
-->Args({ 1048576, 1048576 })
-->Args({ 1048576, 8388608 })
-->Args({ 8388608, 8388608 });
+->Args({512, 4096})
+->Args({4096, 4096})
+->Args({1024, 8192})
+->Args({8192, 8192})
+->Args({16384, 131072})
+->Args({131072, 131072})
+->Args({16384, 131072})
+->Args({131072, 131072})
+->Args({131072, 1048576})
+->Args({1048576, 1048576})
+->Args({131072, 1048576})
+->Args({1048576, 1048576})
+->Args({1048576, 8388608})
+->Args({8388608, 8388608});
 
 int autoSelectDevice = 0;
 
