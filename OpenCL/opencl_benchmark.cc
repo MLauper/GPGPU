@@ -54,11 +54,11 @@ static void BM_OpenCLBasicLatencyTest(benchmark::State& state)
 
 		// Copy Data from Device to Host
 		queue.enqueueReadBuffer(buffer_C, CL_TRUE, 0, sizeof(int) * 10, C);
+
 	}
 }
 
 BENCHMARK(BM_OpenCLBasicLatencyTest)
-	->Unit(benchmark::kMillisecond)
 	->MinTime(1.0);
 
 static void BM_OpenCLConvergedExecution(benchmark::State& state)
@@ -588,7 +588,7 @@ BENCHMARK(BM_OpenCLIntOPS_GeneratedData)
 ->Args({ 67108864 })
 ->Args({ 134217728 });
 
-static void BM_OpenCLVOPS_RandomData(benchmark::State& state)
+static void BM_OpenCLFloat2OPS_RandomData(benchmark::State& state)
 {
 	// Create Context on Device
 	cl::Context context(benchmarkingDevice);
@@ -663,7 +663,7 @@ static void BM_OpenCLVOPS_RandomData(benchmark::State& state)
 	queue.finish();
 }
 
-BENCHMARK(BM_OpenCLVOPS_RandomData)
+BENCHMARK(BM_OpenCLFloat2OPS_RandomData)
 ->UseManualTime()
 ->MinTime(1.0);
 
@@ -886,13 +886,22 @@ static void BM_OpenCLBandwidthHostToDevice(benchmark::State& state)
 	// Copy Data from Host to Device
 	while (state.KeepRunning())
 	{
+		auto start = std::chrono::high_resolution_clock::now();
+
 		queue.enqueueWriteBuffer(buffer_in, CL_TRUE, 0, sizeof(int) * chunkSize, input);
+
+		auto end = std::chrono::high_resolution_clock::now();
+		auto elapsed_seconds =
+			std::chrono::duration_cast<std::chrono::duration<double>>(
+				end - start);
+		state.SetIterationTime(elapsed_seconds.count());
 	}
 
 	state.SetBytesProcessed(state.iterations() * chunkSize * sizeof(int));
 }
 
 BENCHMARK(BM_OpenCLBandwidthHostToDevice)
+->UseManualTime()
 ->MinTime(1.0)
 ->Args({ 1 })
 ->Args({ 8 })
@@ -933,14 +942,23 @@ static void BM_OpenCLBandwidthDeviceToDevice(benchmark::State& state)
 	// Copy Data from Device to Device
 	while (state.KeepRunning())
 	{
+		auto start = std::chrono::high_resolution_clock::now();
+
 		queue.enqueueCopyBuffer(buffer_in, buffer_device, 0, 0, sizeof(int) * chunkSize);
 		queue.finish();
+
+		auto end = std::chrono::high_resolution_clock::now();
+		auto elapsed_seconds =
+			std::chrono::duration_cast<std::chrono::duration<double>>(
+				end - start);
+		state.SetIterationTime(elapsed_seconds.count());
 	}
 
 	state.SetBytesProcessed(state.iterations() * chunkSize * sizeof(int));
 }
 
 BENCHMARK(BM_OpenCLBandwidthDeviceToDevice)
+->UseManualTime()
 ->MinTime(1.0)
 ->Args({ 1 })
 ->Args({ 8 })
@@ -980,13 +998,22 @@ static void BM_OpenCLBandwidthDeviceToHost(benchmark::State& state)
 	// Copy Data from Host to Device
 	while (state.KeepRunning())
 	{
+		auto start = std::chrono::high_resolution_clock::now();
+
 		queue.enqueueReadBuffer(buffer_inout, CL_TRUE, 0, sizeof(int) * chunkSize, inout);
+
+		auto end = std::chrono::high_resolution_clock::now();
+		auto elapsed_seconds =
+			std::chrono::duration_cast<std::chrono::duration<double>>(
+				end - start);
+		state.SetIterationTime(elapsed_seconds.count());
 	}
 
 	state.SetBytesProcessed(state.iterations() * chunkSize * sizeof(int));
 }
 
 BENCHMARK(BM_OpenCLBandwidthDeviceToHost)
+->UseManualTime()
 ->MinTime(1.0)
 ->Args({ 1 })
 ->Args({ 8 })
@@ -1063,7 +1090,15 @@ static void BM_OpenCLKernelCreation(benchmark::State& state)
 
 	while (state.KeepRunning())
 	{
+		auto start = std::chrono::high_resolution_clock::now();
+
 		gridStrideKernel(eargs, dataPerKernel, input, output).wait();
+
+		auto end = std::chrono::high_resolution_clock::now();
+		auto elapsed_seconds =
+			std::chrono::duration_cast<std::chrono::duration<double>>(
+				end - start);
+		state.SetIterationTime(elapsed_seconds.count());
 	}
 
 	// Ouptut Data
@@ -1078,6 +1113,7 @@ static void BM_OpenCLKernelCreation(benchmark::State& state)
 }
 
 BENCHMARK(BM_OpenCLKernelCreation)
+->UseManualTime()
 ->MinTime(1.0)
 ->Args({ 1, 1 })
 ->Args({ 1, 10 })
