@@ -16,3 +16,6 @@
 # Doxygen Output files
 html/
 latex/
+
+# VSCode Project Files
+.vscode
