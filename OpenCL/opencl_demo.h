@@ -24,10 +24,16 @@ namespace opencl_demo
 	{
 	public:
 		PlatformDemo();
+
+		/*! \brief Print all available OpenCL Platforms */
 		void printPlatforms();
+		/*! \brief Print the number of available OpenCL Platforms*/
 		void printNumberOfAvailablePlatforms();
+		/*! \brief Print platform information*/
 		void printPlatformInfo();
+		/*! \brief Print all available OpenCL Devices */
 		void printDevices();
+		/*! \brief Print device information */
 		void printDeviceInfo();
 	private:
 		cl_uint numOfPlatforms_;
@@ -36,6 +42,7 @@ namespace opencl_demo
 
 	namespace memory
 	{
+		/*! \brief Display a demonstration of OpenCL buffered Memory */
 		void demonstrateMemBuffer();
 	}
 

@@ -3,8 +3,6 @@
 #include <ratio>
 #include <chrono>
 
-cl::Device benchmarkingDevice;
-
 static void BM_OpenCLBasicLatencyTest(benchmark::State& state)
 {
 	while (state.KeepRunning())
@@ -1342,8 +1340,6 @@ BENCHMARK(BM_OpenCLGoodMemoryCoalescence)
 ->Args({ 1048576, 1048576 })
 ->Args({ 1048576, 8388608 })
 ->Args({ 8388608, 8388608 });
-
-int autoSelectDevice = 0;
 
 void selectBenchmarkDevice()
 {

@@ -30,7 +30,9 @@ namespace opencl_helpers
 	 */
 	struct opencl_error;
 
+	/*! \brief Provides an OpenCL Platform object */
 	class Platform;
+	/*! \brief Provides an OpenCL Device object  */
 	class Device;
 
 	class Platform

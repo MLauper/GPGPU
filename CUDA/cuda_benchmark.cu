@@ -3,8 +3,6 @@
 #include <ratio>
 #include <chrono>
 
-int benchmarkingDevice;
-
 __global__ void BM_addInt(int* d_a, int* d_b, int* d_c)
 {
 	*d_c = *d_a + *d_b;
@@ -1050,8 +1048,6 @@ BENCHMARK(BM_CUDAGoodMemoryCoalescence)
 ->Args({1048576, 1048576})
 ->Args({1048576, 8388608})
 ->Args({8388608, 8388608});
-
-int autoSelectDevice = 0;
 
 void selectBenchmarkDevice()
 {
