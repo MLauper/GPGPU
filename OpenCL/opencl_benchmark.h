@@ -8,8 +8,8 @@
 /*! \file opencl_benchmark.h
 *	\brief Provides benchmarks to measure OpenCL performance.
 *
-*	This header file is a dummy for opencl_benchmarks.cc which
-*	contains all benchmarks for OpenCL.
+* This header file cotains all functions to benchmark OpenCL
+* performance.
 */
 
 /*! \brief Array of random float numbers*/
